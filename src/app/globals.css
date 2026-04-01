@@ -1,20 +1,116 @@
-@import "tw-animate-css";
-@import "shadcn/tailwind.css";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+@layer base {
+  :root {
+    color-scheme: light;
+    --font-sans: var(--font-geist, "Geist", ui-sans-serif, system-ui, sans-serif);
+    --font-mono: var(--font-source-code-pro, "Source Code Pro", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace);
+
+    --foreground-default: 0 0% 9%;
+    --foreground-light: 0 0% 45%;
+    --foreground-lighter: 0 0% 60%;
+    --foreground-muted: 0 0% 68%;
+
+    --background-default: 0 0% 100%;
+    --background-200: 0 0% 98%;
+    --background-surface-100: 0 0% 100%;
+    --background-surface-200: 0 0% 96%;
+    --background-surface-300: 0 0% 93%;
+    --background-alternative: 0 0% 98%;
+    --background-overlay: 0 0% 0% / 0.4;
+
+    --border-default: 0 0% 90%;
+    --border-strong: 0 0% 82%;
+    --border-control: 0 0% 85%;
+
+    --brand-default: 153 60% 53%;
+    --brand-foreground: 0 0% 10%;
+    --destructive-default: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --warning-default: 38 92% 50%;
+    --warning-foreground: 0 0% 10%;
+
+    --background: var(--background-default);
+    --foreground: var(--foreground-default);
+    --radius: 0.375rem;
+  }
+
+  .dark {
+    color-scheme: dark;
+    --foreground-default: 0 0% 93%;
+    --foreground-light: 0 0% 65%;
+    --foreground-lighter: 0 0% 50%;
+    --foreground-muted: 0 0% 40%;
+
+    --background-default: 0 0% 10%;
+    --background-200: 0 0% 13%;
+    --background-surface-100: 0 0% 16%;
+    --background-surface-200: 0 0% 20%;
+    --background-surface-300: 0 0% 24%;
+    --background-alternative: 0 0% 11%;
+    --background-overlay: 0 0% 0% / 0.7;
+
+    --border-default: 0 0% 25%;
+    --border-strong: 0 0% 35%;
+    --border-control: 0 0% 20%;
+
+    --brand-default: 153 60% 53%;
+    --brand-foreground: 0 0% 10%;
+    --destructive-default: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --warning-default: 38 92% 50%;
+    --warning-foreground: 0 0% 10%;
+
+    --background: var(--background-default);
+    --foreground: var(--foreground-default);
+  }
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html,
+  body {
+    height: 100%;
+  }
+  body {
+    @apply bg-bg text-foreground font-sans text-sm antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  code,
+  pre,
+  kbd,
+  samp {
+    @apply font-mono;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply text-foreground;
+  }
+
+  p,
+  li,
+  dt,
+  dd,
+  figcaption,
+  small {
+    @apply text-light;
+  }
+
+  a {
+    @apply text-foreground underline decoration-muted-foreground underline-offset-2 transition-colors;
+  }
+
+  a:hover {
+    @apply decoration-lighter;
   }
 }
 
@@ -22,87 +118,28 @@
   .text-balance {
     text-wrap: balance;
   }
-}
 
-@layer base {
-  .theme {
-    --font-heading: var(--font-sans);
-    --font-sans: var(--font-sans);
+  .text-pretty {
+    text-wrap: pretty;
   }
-  :root {
-    --background: oklch(1 0 0);
-    --foreground: oklch(0.145 0 0);
-    --card: oklch(1 0 0);
-    --card-foreground: oklch(0.145 0 0);
-    --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.145 0 0);
-    --primary: oklch(0.205 0 0);
-    --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.97 0 0);
-    --secondary-foreground: oklch(0.205 0 0);
-    --muted: oklch(0.97 0 0);
-    --muted-foreground: oklch(0.556 0 0);
-    --accent: oklch(0.97 0 0);
-    --accent-foreground: oklch(0.205 0 0);
-    --destructive: oklch(0.577 0.245 27.325);
-    --border: oklch(0.922 0 0);
-    --input: oklch(0.922 0 0);
-    --ring: oklch(0.708 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-    --radius: 0.625rem;
-    --sidebar: oklch(0.985 0 0);
-    --sidebar-foreground: oklch(0.145 0 0);
-    --sidebar-primary: oklch(0.205 0 0);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.97 0 0);
-    --sidebar-accent-foreground: oklch(0.205 0 0);
-    --sidebar-border: oklch(0.922 0 0);
-    --sidebar-ring: oklch(0.708 0 0);
+
+  .text-foreground-light {
+    @apply text-light;
   }
-  .dark {
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.205 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.205 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.922 0 0);
-    --primary-foreground: oklch(0.205 0 0);
-    --secondary: oklch(0.269 0 0);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.704 0.191 22.216);
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.556 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-    --sidebar: oklch(0.205 0 0);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.488 0.243 264.376);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: oklch(0.556 0 0);
+
+  .text-foreground-lighter {
+    @apply text-lighter;
   }
-  * {
-    @apply border-border outline-ring/50;
+
+  .text-foreground-muted {
+    @apply text-muted-foreground;
   }
-  body {
-    @apply bg-background text-foreground;
+
+  .decoration-foreground-muted {
+    @apply decoration-muted-foreground;
   }
-  html {
-    @apply font-sans;
+
+  .decoration-foreground-lighter {
+    @apply decoration-lighter;
   }
 }
