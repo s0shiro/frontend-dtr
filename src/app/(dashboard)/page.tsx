@@ -1,0 +1,172 @@
+"use client";
+
+import { useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { endOfWeek, format, isToday, startOfWeek } from 'date-fns';
+
+import { ClockWidget } from '@/components/dashboard/ClockWidget';
+import { SalaryWidget } from '@/components/dashboard/SalaryWidget';
+import { listLogs, logsQueryKey } from '@/lib/api/logs';
+
+function toHoursLabel(minutes: number): string {
+  return `${(minutes / 60).toFixed(1)}h`;
+}
+
+function toDurationLabel(minutes: number): string {
+  const safeMinutes = Math.max(0, Math.floor(minutes));
+  const hours = Math.floor(safeMinutes / 60);
+  const remainingMinutes = safeMinutes % 60;
+
+  if (hours === 0) {
+    return `${remainingMinutes}m`;
+  }
+
+  return `${hours}h ${remainingMinutes}m`;
+}
+
+export default function DashboardPage() {
+  const logsQuery = useQuery({
+    queryKey: logsQueryKey(),
+    queryFn: () => listLogs(),
+    staleTime: 30_000,
+  });
+
+  const summary = useMemo(() => {
+    const now = new Date();
+    const weekStart = startOfWeek(now, { weekStartsOn: 1 });
+    const weekEnd = endOfWeek(now, { weekStartsOn: 1 });
+    const logs = logsQuery.data?.logs ?? [];
+
+    let todayMinutes = 0;
+    let weekMinutes = 0;
+    let todaySessions = 0;
+    let weekSessions = 0;
+
+    for (const log of logs) {
+      const clockIn = new Date(log.clockInAt);
+
+      if (Number.isNaN(clockIn.getTime())) {
+        continue;
+      }
+
+      const clockOut = log.clockOutAt ? new Date(log.clockOutAt) : now;
+      const end = Number.isNaN(clockOut.getTime()) ? now : clockOut;
+      const elapsedMinutes = Math.max(0, Math.floor((end.getTime() - clockIn.getTime()) / 60000));
+
+      if (isToday(clockIn)) {
+        todayMinutes += elapsedMinutes;
+        todaySessions += 1;
+      }
+
+      if (clockIn >= weekStart && clockIn <= weekEnd) {
+        weekMinutes += elapsedMinutes;
+        weekSessions += 1;
+      }
+    }
+
+    return {
+      todayMinutes,
+      weekMinutes,
+      todaySessions,
+      weekSessions,
+      weeklyTargetMinutes: 40 * 60,
+      weekRangeLabel: `${format(weekStart, 'MMM d')} - ${format(weekEnd, 'MMM d')}`,
+    };
+  }, [logsQuery.data?.logs]);
+
+  const weeklyProgress = Math.min(
+    100,
+    Math.round((summary.weekMinutes / Math.max(1, summary.weeklyTargetMinutes)) * 100),
+  );
+
+  return (
+    <div className="flex-1 w-full p-4 md:p-8 max-w-[1200px] mx-auto space-y-6">
+      <header className="flex flex-col gap-3">
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-normal tracking-tight text-foreground">dtr</h1>
+          <span className="text-[10px] font-mono tracking-wider px-1.5 py-0.5 rounded outline outline-1 outline-border bg-surface-200 text-light uppercase">
+            One tap
+          </span>
+        </div>
+
+        <p className="max-w-2xl text-xs text-light">
+          Clock in or clock out with a single tap. Keep your daily record accurate without extra steps.
+        </p>
+      </header>
+
+      <section className="w-full border border-control bg-surface-100 rounded-md shadow-sm p-4 md:p-6 space-y-4">
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-sm font-medium text-foreground">summary</p>
+          <span className="text-[10px] font-mono tracking-wider px-2 py-1 rounded bg-surface-200 text-light uppercase">
+            week {summary.weekRangeLabel}
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="h-28 rounded-md border border-control bg-surface-100 p-3 flex flex-col justify-between">
+            <p className="text-[10px] font-mono uppercase tracking-wider text-light">today hours</p>
+            <p className="text-2xl font-normal text-foreground tabular-nums">{toHoursLabel(summary.todayMinutes)}</p>
+            <p className="text-[10px] text-lighter">{summary.todaySessions} session(s) logged today</p>
+          </div>
+
+          <div className="h-28 rounded-md border border-control bg-surface-100 p-3 flex flex-col justify-between">
+            <p className="text-[10px] font-mono uppercase tracking-wider text-light">week hours</p>
+            <p className="text-2xl font-normal text-foreground tabular-nums">{toHoursLabel(summary.weekMinutes)}</p>
+            <p className="text-[10px] text-lighter">{summary.weekSessions} session(s) this week</p>
+          </div>
+
+          <div className="h-28 rounded-md border border-control bg-surface-100 p-3 flex flex-col justify-between">
+            <p className="text-[10px] font-mono uppercase tracking-wider text-light">weekly target</p>
+            <p className="text-2xl font-normal text-foreground tabular-nums">
+              {toHoursLabel(summary.weeklyTargetMinutes)}
+            </p>
+            <p className="text-[10px] text-lighter">standard baseline for full-time week</p>
+          </div>
+
+          <div className="h-28 rounded-md border border-control bg-surface-100 p-3 flex flex-col justify-between">
+            <p className="text-[10px] font-mono uppercase tracking-wider text-light">remaining</p>
+            <p className="text-2xl font-normal text-foreground tabular-nums">
+              {toDurationLabel(summary.weeklyTargetMinutes - summary.weekMinutes)}
+            </p>
+            <p className="text-[10px] text-lighter">{weeklyProgress}% of weekly target completed</p>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <div className="h-1.5 w-full rounded-full bg-surface-200 overflow-hidden">
+            <div
+              className="h-full bg-brand transition-all duration-500"
+              style={{ width: `${weeklyProgress}%` }}
+            />
+          </div>
+
+          <div className="flex items-center justify-between text-[10px] text-lighter">
+            <span>
+              {logsQuery.isFetching ? 'Refreshing summary...' : 'Summary updates from your latest clock activity.'}
+            </span>
+            <span>
+              {logsQuery.isError ? 'Could not load logs.' : `${summary.weekSessions} entries in current week`}
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <section className="w-full border border-control bg-surface-100 rounded-md shadow-sm p-4 md:p-6 space-y-4">
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-sm font-medium text-foreground">today</p>
+          <span className="text-[10px] font-mono tracking-wider px-2 py-1 rounded bg-surface-200 text-light uppercase">
+            digital time record
+          </span>
+        </div>
+
+        <ClockWidget />
+
+        <SalaryWidget logs={logsQuery.data?.logs ?? []} />
+
+        <div className="border-t border-control pt-3 text-[10px] text-lighter">
+          Tip: use this screen as your daily start and end touchpoint.
+        </div>
+      </section>
+    </div>
+  );
+}
