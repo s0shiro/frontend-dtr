@@ -1,13 +1,21 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Trash2 } from "lucide-react";
+import { Download, Printer, Trash2 } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { DeleteDialog } from "@/components/history/DeleteDialog";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { calculateLogStats } from "@/lib/calculations";
+import { buildCsvContent, downloadTextFile } from "@/lib/dtr-export";
 import {
   adjustLogTime,
   deleteLog,
@@ -77,6 +85,21 @@ interface DayRow {
   dateKey: string;
   amLog: LogItem | null;
   pmLog: LogItem | null;
+}
+
+function formatMonthLabel(value: string) {
+  return new Intl.DateTimeFormat(undefined, {
+    month: "long",
+    year: "numeric",
+  }).format(new Date(`${value}-01`));
+}
+
+function getRenderedMinutes(log: LogItem, now: Date) {
+  const clockIn = new Date(log.clockInAt);
+  const clockOut = log.clockOutAt ? new Date(log.clockOutAt) : now;
+  const end = Number.isNaN(clockOut.getTime()) ? now : clockOut;
+
+  return Math.max(0, Math.floor((end.getTime() - clockIn.getTime()) / 60000));
 }
 
 export default function HistoryPage() {
@@ -170,6 +193,71 @@ export default function HistoryPage() {
   }, [monthRows, search]);
 
   const stats = useMemo(() => calculateLogStats(monthRows), [monthRows]);
+  const monthLabel = useMemo(() => formatMonthLabel(monthFilter), [monthFilter]);
+
+  function buildExportRows() {
+    const now = new Date();
+
+    return groupedRows.map((row) => {
+      const amMinutes = row.amLog ? getRenderedMinutes(row.amLog, now) : 0;
+      const pmMinutes = row.pmLog ? getRenderedMinutes(row.pmLog, now) : 0;
+
+      return [
+        row.dateKey,
+        row.amLog ? formatTime(row.amLog.clockInAt) : "",
+        row.amLog?.clockOutAt ? formatTime(row.amLog.clockOutAt) : "",
+        row.pmLog ? formatTime(row.pmLog.clockInAt) : "",
+        row.pmLog?.clockOutAt ? formatTime(row.pmLog.clockOutAt) : "",
+        row.amLog ? getRowStatus(row.amLog) : "",
+        row.pmLog ? getRowStatus(row.pmLog) : "",
+        row.amLog?.note ?? "",
+        row.pmLog?.note ?? "",
+        ((amMinutes + pmMinutes) / 60).toFixed(2),
+      ];
+    });
+  }
+
+  function handleExportCsv() {
+    const exportedRows = buildExportRows();
+    const exportedLogs = groupedRows.flatMap((row) => [row.amLog, row.pmLog].filter(Boolean) as LogItem[]);
+    const exportStats = calculateLogStats(exportedLogs);
+    const csvContent = buildCsvContent({
+      title: "DTR Monthly Export",
+      summary: [
+        ["Month", monthLabel],
+        [
+          "Generated",
+          new Intl.DateTimeFormat(undefined, {
+            dateStyle: "medium",
+            timeStyle: "short",
+          }).format(new Date()),
+        ],
+        ["Visible Days", String(groupedRows.length)],
+        ["Total Hours", exportStats.totalHoursRendered.toFixed(2)],
+        ["Late Minutes", String(exportStats.lateMinutes)],
+        ["Undertime Minutes", String(exportStats.undertimeMinutes)],
+      ],
+      header: [
+        "Date",
+        "AM In",
+        "AM Out",
+        "PM In",
+        "PM Out",
+        "AM Status",
+        "PM Status",
+        "AM Note",
+        "PM Note",
+        "Rendered Hours",
+      ],
+      rows: exportedRows,
+    });
+
+    downloadTextFile(`dtr-${monthFilter}.csv`, csvContent, "text/csv;charset=utf-8");
+  }
+
+  function handlePrintPdf() {
+    window.print();
+  }
 
   function handleAdjust(id: string, target: "clockIn" | "clockOut", minutesDelta: number) {
     adjustMutation.mutate({
@@ -194,15 +282,40 @@ export default function HistoryPage() {
     : "Failed to load history logs.";
 
   return (
-    <div className="flex-1 w-full p-4 md:p-8 max-w-[1200px] mx-auto space-y-6">
-      <div className="flex flex-col gap-2">
-        <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-normal tracking-tight text-foreground">history</h1>
-          <span className="text-[10px] font-mono tracking-wider px-1.5 py-0.5 rounded outline outline-1 outline-border bg-surface-200 text-light uppercase">
-            Logs
-          </span>
+    <div className="flex-1 w-full p-4 md:p-8 max-w-[1200px] mx-auto space-y-6 print:max-w-none print:p-0">
+      <div className="flex flex-col gap-3">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl font-normal tracking-tight text-foreground">history</h1>
+              <span className="text-[10px] font-mono tracking-wider px-1.5 py-0.5 rounded outline outline-1 outline-border bg-surface-200 text-light uppercase">
+                Logs
+              </span>
+            </div>
+            <p className="text-xs text-light">Search and review your previous time entries by month.</p>
+          </div>
+
+          <div className="print:hidden flex items-center gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="min-w-[140px] justify-between">
+                  Export DTR
+                  <Download className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-44">
+                <DropdownMenuItem onSelect={handleExportCsv}>
+                  <Download className="h-4 w-4" />
+                  Download CSV
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={handlePrintPdf}>
+                  <Printer className="h-4 w-4" />
+                  Save as PDF
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
-        <p className="text-xs text-light">Search and review your previous time entries by month.</p>
       </div>
 
       <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
@@ -223,8 +336,8 @@ export default function HistoryPage() {
         </div>
       </div>
 
-      <div className="w-full border border-control bg-surface-100 rounded-md shadow-sm overflow-hidden">
-        <div className="border-b border-control bg-surface-100 p-4 flex flex-col md:flex-row gap-3 md:items-center md:justify-between">
+      <div className="w-full border border-control bg-surface-100 rounded-md shadow-sm overflow-hidden print:border-0 print:shadow-none">
+        <div className="print:hidden border-b border-control bg-surface-100 p-4 flex flex-col md:flex-row gap-3 md:items-center md:justify-between">
           <div className="flex flex-1 flex-col md:flex-row gap-3">
             <Input
               value={search}
@@ -268,7 +381,7 @@ export default function HistoryPage() {
                     <th className="h-8 px-3 text-left text-[11px] font-mono uppercase tracking-wider text-light">PM In</th>
                     <th className="h-8 px-3 text-left text-[11px] font-mono uppercase tracking-wider text-light">PM Out</th>
                     <th className="h-8 px-3 text-left text-[11px] font-mono uppercase tracking-wider text-light">Note</th>
-                    <th className="h-8 px-3 text-left text-[11px] font-mono uppercase tracking-wider text-light">Actions</th>
+                    <th className="print:hidden h-8 px-3 text-left text-[11px] font-mono uppercase tracking-wider text-light">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -403,7 +516,7 @@ export default function HistoryPage() {
                             ) : null}
                           </div>
                         </td>
-                        <td className="px-3 py-2 text-xs">
+                        <td className="print:hidden px-3 py-2 text-xs">
                           <div className="flex items-center gap-1">
                             {row.amLog ? (
                               <button

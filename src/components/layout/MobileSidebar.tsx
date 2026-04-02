@@ -25,7 +25,7 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
         }
       }}
     >
-      <SheetContent side="left" className="w-[240px] p-0 md:hidden" showCloseButton={false}>
+      <SheetContent side="left" className="w-[240px] p-0 md:hidden print:hidden" showCloseButton={false}>
         <SheetHeader className="sr-only">
           <SheetTitle>Navigation menu</SheetTitle>
         </SheetHeader>

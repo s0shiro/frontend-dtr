@@ -143,3 +143,25 @@
     @apply decoration-lighter;
   }
 }
+
+@media print {
+  html,
+  body {
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  body {
+    background: white !important;
+    color: black !important;
+  }
+
+  * {
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  .print\:hidden {
+    display: none !important;
+  }
+}

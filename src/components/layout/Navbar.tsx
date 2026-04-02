@@ -37,7 +37,7 @@ export function Navbar({
   const breadcrumbItems = fallbackBreadcrumb.length > 0 ? fallbackBreadcrumb : breadcrumb;
 
   return (
-    <header className="flex h-10 shrink-0 items-center justify-between border-b border-control bg-surface-100 px-4">
+    <header className="flex h-10 shrink-0 items-center justify-between border-b border-control bg-surface-100 px-4 print:hidden">
       <div className="flex items-center gap-2">
         <button
           type="button"

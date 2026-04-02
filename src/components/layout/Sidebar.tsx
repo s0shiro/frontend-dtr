@@ -15,7 +15,7 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="hidden h-screen w-[240px] shrink-0 border-r border-control bg-surface-100 md:flex md:flex-col">
+    <aside className="hidden h-screen w-[240px] shrink-0 border-r border-control bg-surface-100 md:flex md:flex-col print:hidden">
       <div className="flex h-10 items-center border-b border-control px-3">
         <span className="text-xs font-medium text-foreground">DTR Project</span>
       </div>
