@@ -115,6 +115,11 @@
 }
 
 @layer utilities {
+  .group\/calendar {
+    /* Keep calendar cell size equivalent to Tailwind spacing(7) without invalid var() syntax. */
+    --cell-size: calc(var(--spacing) * 7);
+  }
+
   .text-balance {
     text-wrap: balance;
   }

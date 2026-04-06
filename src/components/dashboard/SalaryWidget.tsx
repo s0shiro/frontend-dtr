@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { Button } from "@/components/ui/button";
@@ -39,7 +39,7 @@ interface SalaryWidgetProps {
 
 export function SalaryWidget({ logs }: SalaryWidgetProps) {
   const queryClient = useQueryClient();
-  const [dailyRateInput, setDailyRateInput] = useState("");
+  const [dailyRateInput, setDailyRateInput] = useState<string | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
 
   const profileQuery = useQuery({
@@ -56,22 +56,15 @@ export function SalaryWidget({ logs }: SalaryWidgetProps) {
   });
 
   const storedDailyRate = profileQuery.data?.dailyRate ?? null;
-
-  useEffect(() => {
-    if (storedDailyRate === null) {
-      setDailyRateInput("");
-      return;
-    }
-
-    setDailyRateInput(storedDailyRate.toFixed(2));
-  }, [storedDailyRate]);
+  const displayedDailyRateInput =
+    dailyRateInput ?? (storedDailyRate === null ? "" : storedDailyRate.toFixed(2));
 
   const stats = useMemo(() => calculateLogStats(logs), [logs]);
   const appliedDailyRate = updateDailyRateMutation.data?.dailyRate ?? storedDailyRate;
   const equivalentDaysWorked = stats.totalRenderedMinutes / STANDARD_DAILY_MINUTES;
   const totalCalculatedSalary = (appliedDailyRate ?? 0) * equivalentDaysWorked;
 
-  const parsedInputRate = Number(dailyRateInput);
+  const parsedInputRate = Number(displayedDailyRateInput);
   const roundedInputRate = Number.isFinite(parsedInputRate)
     ? Number(parsedInputRate.toFixed(2))
     : null;
@@ -81,7 +74,7 @@ export function SalaryWidget({ logs }: SalaryWidgetProps) {
   const isBusy = profileQuery.isLoading || isSaving;
 
   function handleSaveDailyRate() {
-    const parsedRate = Number(dailyRateInput);
+    const parsedRate = Number(displayedDailyRateInput);
 
     if (!Number.isFinite(parsedRate)) {
       setValidationError("Daily rate must be a valid number.");
@@ -120,7 +113,7 @@ export function SalaryWidget({ logs }: SalaryWidgetProps) {
               inputMode="decimal"
               min="0"
               step="0.01"
-              value={dailyRateInput}
+              value={displayedDailyRateInput}
               onChange={(event) => setDailyRateInput(event.target.value)}
               disabled={isBusy}
               placeholder="0.00"

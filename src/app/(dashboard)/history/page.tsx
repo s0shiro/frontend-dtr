@@ -5,6 +5,7 @@ import { Download, Printer, Trash2 } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { DeleteDialog } from "@/components/history/DeleteDialog";
+import { TimePickerPopover } from "@/components/history/TimePickerPopover";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -68,7 +69,7 @@ function getRowStatus(log: LogItem) {
 
 function getLogPeriod(log: LogItem) {
   const hour = new Date(log.clockInAt).getHours();
-  return hour < 13 ? "am" : "pm";
+  return hour < 12 ? "am" : "pm";
 }
 
 function pickPeriodLog(current: LogItem | null, next: LogItem) {
@@ -259,12 +260,12 @@ export default function HistoryPage() {
     window.print();
   }
 
-  function handleAdjust(id: string, target: "clockIn" | "clockOut", minutesDelta: number) {
+  function handleAdjust(id: string, target: "clockIn" | "clockOut", targetTime: string) {
     adjustMutation.mutate({
       id,
       payload: {
         target,
-        minutesDelta,
+        targetTime,
       },
     });
   }
@@ -395,26 +396,14 @@ export default function HistoryPage() {
                         <td className="px-3 py-2 text-xs font-mono text-light">{formatDate(row.dateKey)}</td>
                         <td className="px-3 py-2 text-xs font-mono text-foreground">
                           {row.amLog ? (
-                            <div className="flex items-center gap-1">
+                            <div className="flex items-center gap-1.5">
                               <span>{formatTime(row.amLog.clockInAt)}</span>
-                              <button
-                                type="button"
-                                onClick={() => handleAdjust(row.amLog!.id, "clockIn", -1)}
+                              <TimePickerPopover
+                                currentTime={row.amLog.clockInAt}
+                                label="AM In"
                                 disabled={isMutating}
-                                className="h-[28px] w-[28px] text-[10px] bg-surface-200 hover:bg-surface-300 border border-control rounded flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
-                                aria-label="Decrease AM clock-in by 1 minute"
-                              >
-                                -
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleAdjust(row.amLog!.id, "clockIn", 1)}
-                                disabled={isMutating}
-                                className="h-[28px] w-[28px] text-[10px] bg-surface-200 hover:bg-surface-300 border border-control rounded flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
-                                aria-label="Increase AM clock-in by 1 minute"
-                              >
-                                +
-                              </button>
+                                onConfirm={(targetTime) => handleAdjust(row.amLog!.id, "clockIn", targetTime)}
+                              />
                             </div>
                           ) : (
                             "-"
@@ -422,26 +411,14 @@ export default function HistoryPage() {
                         </td>
                         <td className="px-3 py-2 text-xs font-mono text-foreground">
                           {row.amLog?.clockOutAt ? (
-                            <div className="flex items-center gap-1">
+                            <div className="flex items-center gap-1.5">
                               <span>{formatTime(row.amLog.clockOutAt)}</span>
-                              <button
-                                type="button"
-                                onClick={() => handleAdjust(row.amLog!.id, "clockOut", -1)}
+                              <TimePickerPopover
+                                currentTime={row.amLog.clockOutAt}
+                                label="AM Out"
                                 disabled={isMutating}
-                                className="h-[28px] w-[28px] text-[10px] bg-surface-200 hover:bg-surface-300 border border-control rounded flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
-                                aria-label="Decrease AM clock-out by 1 minute"
-                              >
-                                -
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleAdjust(row.amLog!.id, "clockOut", 1)}
-                                disabled={isMutating}
-                                className="h-[28px] w-[28px] text-[10px] bg-surface-200 hover:bg-surface-300 border border-control rounded flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
-                                aria-label="Increase AM clock-out by 1 minute"
-                              >
-                                +
-                              </button>
+                                onConfirm={(targetTime) => handleAdjust(row.amLog!.id, "clockOut", targetTime)}
+                              />
                             </div>
                           ) : (
                             "-"
@@ -449,26 +426,14 @@ export default function HistoryPage() {
                         </td>
                         <td className="px-3 py-2 text-xs font-mono text-foreground">
                           {row.pmLog ? (
-                            <div className="flex items-center gap-1">
+                            <div className="flex items-center gap-1.5">
                               <span>{formatTime(row.pmLog.clockInAt)}</span>
-                              <button
-                                type="button"
-                                onClick={() => handleAdjust(row.pmLog!.id, "clockIn", -1)}
+                              <TimePickerPopover
+                                currentTime={row.pmLog.clockInAt}
+                                label="PM In"
                                 disabled={isMutating}
-                                className="h-[28px] w-[28px] text-[10px] bg-surface-200 hover:bg-surface-300 border border-control rounded flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
-                                aria-label="Decrease PM clock-in by 1 minute"
-                              >
-                                -
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleAdjust(row.pmLog!.id, "clockIn", 1)}
-                                disabled={isMutating}
-                                className="h-[28px] w-[28px] text-[10px] bg-surface-200 hover:bg-surface-300 border border-control rounded flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
-                                aria-label="Increase PM clock-in by 1 minute"
-                              >
-                                +
-                              </button>
+                                onConfirm={(targetTime) => handleAdjust(row.pmLog!.id, "clockIn", targetTime)}
+                              />
                             </div>
                           ) : (
                             "-"
@@ -476,26 +441,14 @@ export default function HistoryPage() {
                         </td>
                         <td className="px-3 py-2 text-xs font-mono text-foreground">
                           {row.pmLog?.clockOutAt ? (
-                            <div className="flex items-center gap-1">
+                            <div className="flex items-center gap-1.5">
                               <span>{formatTime(row.pmLog.clockOutAt)}</span>
-                              <button
-                                type="button"
-                                onClick={() => handleAdjust(row.pmLog!.id, "clockOut", -1)}
+                              <TimePickerPopover
+                                currentTime={row.pmLog.clockOutAt}
+                                label="PM Out"
                                 disabled={isMutating}
-                                className="h-[28px] w-[28px] text-[10px] bg-surface-200 hover:bg-surface-300 border border-control rounded flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
-                                aria-label="Decrease PM clock-out by 1 minute"
-                              >
-                                -
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleAdjust(row.pmLog!.id, "clockOut", 1)}
-                                disabled={isMutating}
-                                className="h-[28px] w-[28px] text-[10px] bg-surface-200 hover:bg-surface-300 border border-control rounded flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
-                                aria-label="Increase PM clock-out by 1 minute"
-                              >
-                                +
-                              </button>
+                                onConfirm={(targetTime) => handleAdjust(row.pmLog!.id, "clockOut", targetTime)}
+                              />
                             </div>
                           ) : (
                             "-"

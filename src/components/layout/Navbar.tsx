@@ -1,12 +1,16 @@
 "use client";
 
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { usePathname, useRouter } from "next/navigation";
 import { ChevronRight, LogOut, Menu } from "lucide-react";
 
 import { signOut, useSession } from "@/lib/auth-client";
 
-import { ThemeToggle } from './ThemeToggle';
+const ThemeToggle = dynamic(
+  () => import("./ThemeToggle").then((module) => module.ThemeToggle),
+  { ssr: false },
+);
 
 interface NavbarProps {
   breadcrumb?: string[];

@@ -1,8 +1,6 @@
 export const logsQueryKey = (month?: string) =>
   month ? (["logs", "me", month] as const) : (["logs", "me"] as const);
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
-
 interface ApiResponse<T> {
   success: boolean;
   data: T | null;
@@ -41,11 +39,12 @@ export interface ClockOutData {
 
 export interface AdjustLogTimePayload {
   target: "clockIn" | "clockOut";
-  minutesDelta: number;
+  /** Absolute ISO 8601 timestamp to set */
+  targetTime: string;
 }
 
 async function logsRequest<T>(path: string, init: RequestInit): Promise<T> {
-  const response = await fetch(`${API_BASE_URL}/api/v1/logs${path}`, {
+  const response = await fetch(`/api/v1/logs${path}`, {
     ...init,
     credentials: "include",
     headers: {
