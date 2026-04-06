@@ -1,8 +1,8 @@
 import { createAuthClient } from 'better-auth/react';
 
 export const authClient = createAuthClient({
-  // Frontend same-origin URL (rewrites /api/auth to backend)
-  baseURL: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+  // Backend API URL for better-auth requests
+  baseURL: process.env.NEXT_PUBLIC_API_URL,
   
   // Enable cross-domain cookies for decoupled frontend/backend
   // Required for sending cookies to backend on different origin
