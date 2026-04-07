@@ -8,6 +8,16 @@ export function PwaRegistration() {
       return;
     }
 
+    if (process.env.NODE_ENV !== "production") {
+      const unregisterInDev = async () => {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(registrations.map((registration) => registration.unregister()));
+      };
+
+      void unregisterInDev();
+      return;
+    }
+
     const registerServiceWorker = async () => {
       try {
         await navigator.serviceWorker.register("/sw.js", { scope: "/" });

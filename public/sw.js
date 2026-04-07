@@ -1,4 +1,4 @@
-const CACHE_NAME = "dtr-tracker-v1";
+const CACHE_NAME = "dtr-tracker-v2";
 const PRECACHE_URLS = [
   "/",
   "/history",
@@ -29,6 +29,15 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  const requestUrl = new URL(event.request.url);
+  const isNextAsset = requestUrl.pathname.startsWith("/_next/");
+
+  // Never cache Next.js runtime and chunk assets with cache-first strategy.
+  // These files change frequently and stale chunks cause module-factory runtime errors.
+  if (isNextAsset) {
+    return;
+  }
+
   if (event.request.mode === "navigate") {
     event.respondWith(
       fetch(event.request)
@@ -47,7 +56,7 @@ self.addEventListener("fetch", (event) => {
   }
 
   const destination = event.request.destination;
-  const shouldCacheFirst = destination === "script" || destination === "style" || destination === "image";
+  const shouldCacheFirst = destination === "image" || destination === "font";
 
   if (!shouldCacheFirst) {
     return;

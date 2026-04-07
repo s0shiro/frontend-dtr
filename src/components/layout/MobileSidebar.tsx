@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { History, Home } from "lucide-react";
+import { History, Home, Notebook } from "lucide-react";
 
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
@@ -13,6 +13,7 @@ interface MobileSidebarProps {
 const navItems = [
   { href: "/", label: "Overview", icon: Home },
   { href: "/history", label: "History", icon: History },
+  { href: "/notes", label: "Daily Notes", icon: Notebook },
 ];
 
 export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
