@@ -40,3 +40,10 @@ export function patchMyDailyRate(dailyRate: number) {
     body: JSON.stringify(payload),
   });
 }
+
+export function patchMySettings(settings: { autoClockOutEnabled?: boolean; autoClockOutAmTime?: string; autoClockOutPmTime?: string }) {
+  return usersRequest<UserProfile>("/me/settings", {
+    method: "PATCH",
+    body: JSON.stringify(settings),
+  });
+}

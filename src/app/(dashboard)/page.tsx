@@ -29,6 +29,7 @@ export default function DashboardPage() {
     queryKey: logsQueryKey(),
     queryFn: () => listLogs(),
     staleTime: 30_000,
+    refetchInterval: 60000,
   });
 
   const summary = useMemo(() => {

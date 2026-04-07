@@ -112,6 +112,7 @@ export default function HistoryPage() {
   const logsQuery = useQuery({
     queryKey: logsQueryKey(monthFilter),
     queryFn: () => listLogs(monthFilter),
+    refetchInterval: 60000,
   });
 
   const deleteMutation = useMutation({

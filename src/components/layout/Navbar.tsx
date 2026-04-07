@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { ChevronRight, LogOut, Menu } from "lucide-react";
 
 import { signOut, useSession } from "@/lib/auth-client";
+import { AutoClockOutToggle } from "./AutoClockOutToggle";
 
 const ThemeToggle = dynamic(
   () => import("./ThemeToggle").then((module) => module.ThemeToggle),
@@ -42,7 +43,7 @@ export function Navbar({
 
   return (
     <header className="flex h-10 shrink-0 items-center justify-between border-b border-control bg-surface-100 px-4 print:hidden">
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 shrink-0">
         <button
           type="button"
           onClick={onMobileMenuToggle}
@@ -64,12 +65,15 @@ export function Navbar({
         </nav>
       </div>
 
-      <div className="flex items-center gap-3 shrink-0">
+      <div className="flex flex-1 items-center gap-3 overflow-x-auto no-scrollbar justify-end ml-4">
         <ThemeToggle />
 
         {session.data?.user ? (
           <>
-            <div className="hidden sm:flex items-center gap-2">
+            <div className="flex shrink-0 items-center">
+              <AutoClockOutToggle />
+            </div>
+            <div className="hidden sm:flex shrink-0 items-center gap-2">
               <div className="w-5 h-5 rounded-full bg-surface-300 border border-control flex items-center justify-center text-[10px] text-foreground font-medium">
                 {userInitial}
               </div>
@@ -77,7 +81,7 @@ export function Navbar({
             </div>
             <button
               onClick={handleLogout}
-              className="h-[28px] px-2 flex items-center gap-2 text-xs text-light hover:text-foreground hover:bg-surface-200 rounded-md border border-transparent hover:border-control transition-colors"
+              className="h-[28px] shrink-0 px-2 flex items-center gap-2 text-xs text-light hover:text-foreground hover:bg-surface-200 rounded-md border border-transparent hover:border-control transition-colors"
               title="Logout"
               type="button"
             >

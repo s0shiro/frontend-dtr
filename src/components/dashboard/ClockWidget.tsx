@@ -32,6 +32,7 @@ export function ClockWidget() {
   const logsQuery = useQuery({
     queryKey: logsQueryKey(),
     queryFn: () => listLogs(),
+    refetchInterval: 60000,
   });
 
   const clockInMutation = useMutation({
