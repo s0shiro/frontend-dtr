@@ -9,6 +9,11 @@ interface ApiResponse<T> {
 
 export interface ClockPayload {
   note?: string;
+  location?: {
+    latitude: number;
+    longitude: number;
+    accuracy?: number;
+  };
 }
 
 export interface LogItem {
@@ -17,10 +22,26 @@ export interface LogItem {
   clockInAt: string;
   clockOutAt: string | null;
   note: string | null;
+  clockInLocationTag: "On-site" | "Remote";
+  clockOutLocationTag: "On-site" | "Remote" | null;
+  clockInDistanceMeters: number | null;
+  clockOutDistanceMeters: number | null;
+}
+
+export interface HolidayItem {
+  date: string;
+  name: string;
 }
 
 export interface ListLogsData {
   logs: LogItem[];
+  holidays: HolidayItem[];
+  monthSummary: {
+    month: string;
+    workingDays: number;
+    requiredMinutes: number;
+    requiredHours: number;
+  };
 }
 
 export interface ClockInData {
@@ -28,6 +49,8 @@ export interface ClockInData {
   userId: string;
   clockInAt: string;
   note: string | null;
+  clockInLocationTag: "On-site" | "Remote";
+  clockInDistanceMeters: number | null;
 }
 
 export interface ClockOutData {
@@ -35,12 +58,20 @@ export interface ClockOutData {
   userId: string;
   clockOutAt: string;
   note: string | null;
+  clockOutLocationTag: "On-site" | "Remote";
+  clockOutDistanceMeters: number | null;
 }
 
 export interface AdjustLogTimePayload {
   target: "clockIn" | "clockOut";
   /** Absolute ISO 8601 timestamp to set */
   targetTime: string;
+}
+
+export interface CreateManualLogPayload {
+  clockInAt: string;
+  clockOutAt: string;
+  note?: string;
 }
 
 async function logsRequest<T>(path: string, init: RequestInit): Promise<T> {
@@ -92,6 +123,13 @@ export function deleteLog(id: string) {
 export function adjustLogTime(id: string, payload: AdjustLogTimePayload) {
   return logsRequest<LogItem>(`/${id}`, {
     method: "PATCH",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function createManualLog(payload: CreateManualLogPayload) {
+  return logsRequest<LogItem>("/manual", {
+    method: "POST",
     body: JSON.stringify(payload),
   });
 }

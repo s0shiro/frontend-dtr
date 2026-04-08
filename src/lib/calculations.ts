@@ -3,14 +3,23 @@ interface LogCalculationInput {
   clockOutAt: string | null;
 }
 
+interface CalculateLogStatsOptions {
+  holidays?: string[];
+  month?: string;
+}
+
 export interface LogCalculationStats {
   totalRenderedMinutes: number;
   totalHoursRendered: number;
   lateMinutes: number;
   undertimeMinutes: number;
+  requiredMinutes: number;
+  requiredHours: number;
+  absentDays: number;
 }
 
 const BLOCK_MINUTES = 4 * 60;
+const REQUIRED_DAILY_MINUTES = 8 * 60;
 
 interface DayRange {
   start: Date;
@@ -103,8 +112,44 @@ function getLateMinutesForBlock(clockIns: Date[], blockStart: Date): number {
   return Math.max(0, Math.floor((firstClockIn.getTime() - blockStart.getTime()) / 60000));
 }
 
-export function calculateLogStats(logs: LogCalculationInput[]): LogCalculationStats {
+function isWeekend(date: Date): boolean {
+  const day = date.getDay();
+  return day === 0 || day === 6;
+}
+
+function countWorkingDays(month: string, holidaySet: Set<string>): number {
+  const start = new Date(`${month}-01T00:00:00.000`);
+
+  if (Number.isNaN(start.getTime())) {
+    return 0;
+  }
+
+  const end = new Date(start);
+  end.setMonth(end.getMonth() + 1);
+  end.setDate(0);
+
+  const cursor = new Date(start);
+  let workingDays = 0;
+
+  while (cursor <= end) {
+    const key = toLocalDateKey(cursor);
+
+    if (!isWeekend(cursor) && !holidaySet.has(key)) {
+      workingDays += 1;
+    }
+
+    cursor.setDate(cursor.getDate() + 1);
+  }
+
+  return workingDays;
+}
+
+export function calculateLogStats(
+  logs: LogCalculationInput[],
+  options: CalculateLogStatsOptions = {},
+): LogCalculationStats {
   const logsByDate = new Map<string, Array<{ clockIn: Date; clockOut: Date }>>();
+  const holidaySet = new Set(options.holidays ?? []);
 
   for (const log of logs) {
     if (!log.clockOutAt) {
@@ -128,7 +173,11 @@ export function calculateLogStats(logs: LogCalculationInput[]): LogCalculationSt
   let lateMinutes = 0;
   let undertimeMinutes = 0;
 
-  for (const dayLogs of logsByDate.values()) {
+  for (const [dateKey, dayLogs] of logsByDate.entries()) {
+    if (holidaySet.has(dateKey)) {
+      continue;
+    }
+
     const schedule = buildDaySchedule(dayLogs[0].clockIn);
     const amOverlaps: DayRange[] = [];
     const pmOverlaps: DayRange[] = [];
@@ -158,10 +207,23 @@ export function calculateLogStats(logs: LogCalculationInput[]): LogCalculationSt
     undertimeMinutes += (BLOCK_MINUTES - amMinutes) + (BLOCK_MINUTES - pmMinutes);
   }
 
+  const requiredMinutes = options.month
+    ? countWorkingDays(options.month, holidaySet) * REQUIRED_DAILY_MINUTES
+    : 0;
+  const requiredHours = Number((requiredMinutes / 60).toFixed(2));
+  const renderedDaysEquivalent = totalRenderedMinutes / REQUIRED_DAILY_MINUTES;
+  const requiredDays = requiredMinutes / REQUIRED_DAILY_MINUTES;
+  const absentDays = options.month
+    ? Math.max(0, Number((requiredDays - renderedDaysEquivalent).toFixed(2)))
+    : 0;
+
   return {
     totalRenderedMinutes,
     totalHoursRendered: Number((totalRenderedMinutes / 60).toFixed(2)),
     lateMinutes,
     undertimeMinutes,
+    requiredMinutes,
+    requiredHours,
+    absentDays,
   };
 }
