@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import { evaluateOfficeGeofence, hasOfficeCoordinates } from "@/lib/geolocation";
 
 const ENTRY_NOTIFICATION_KEY = "dtr:last-geofence-inside";
+const CLOCK_IN_PROMPT_KEY = "dtr:pending-clock-in-prompt";
 
 async function showEntryNotification() {
   if (!("Notification" in window) || Notification.permission !== "granted") {
@@ -68,11 +69,11 @@ export function PwaRegistration() {
       return;
     }
 
-    if (!("geolocation" in navigator) || !("Notification" in window)) {
+    if (!("geolocation" in navigator)) {
       return;
     }
 
-    if (Notification.permission !== "granted" || !hasOfficeCoordinates()) {
+    if (!hasOfficeCoordinates()) {
       return;
     }
 
@@ -87,6 +88,8 @@ export function PwaRegistration() {
         });
 
         if (evaluation.inside && !previousInside) {
+          sessionStorage.setItem(CLOCK_IN_PROMPT_KEY, "1");
+          window.dispatchEvent(new CustomEvent("dtr:geofence-entry"));
           void showEntryNotification();
         }
 

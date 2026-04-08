@@ -47,12 +47,7 @@ const themeInitScript = `
 
 const devCacheResetScript = `
 (() => {
-  const isLocal = location.hostname === "localhost" || location.hostname === "127.0.0.1";
-  if (!isLocal) {
-    return;
-  }
-
-  const resetFlag = "__dtr_dev_cache_reset_v1__";
+  const resetFlag = "__dtr_dev_cache_reset_v2__";
   if (sessionStorage.getItem(resetFlag) === "1") {
     return;
   }

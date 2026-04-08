@@ -1,11 +1,13 @@
 "use client";
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
+import { BellRing } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { endOfWeek, format, isToday, startOfWeek } from 'date-fns';
 
 import { ClockWidget } from '@/components/dashboard/ClockWidget';
 import { SalaryWidget } from '@/components/dashboard/SalaryWidget';
+import { Button } from '@/components/ui/button';
 import { listLogs, logsQueryKey } from '@/lib/api/logs';
 
 function toHoursLabel(minutes: number): string {
@@ -25,6 +27,7 @@ function toDurationLabel(minutes: number): string {
 }
 
 export default function DashboardPage() {
+  const [reminderMessage, setReminderMessage] = useState<string | null>(null);
   const logsQuery = useQuery({
     queryKey: logsQueryKey(),
     queryFn: () => listLogs(),
@@ -80,19 +83,49 @@ export default function DashboardPage() {
     Math.round((summary.weekMinutes / Math.max(1, summary.weeklyTargetMinutes)) * 100),
   );
 
+  async function handleEnableReminders() {
+    if (typeof window === 'undefined' || !("Notification" in window)) {
+      setReminderMessage('Notifications are not supported on this browser.');
+      return;
+    }
+
+    const permission = await Notification.requestPermission();
+
+    if (permission !== 'granted') {
+      setReminderMessage('Please allow notifications for geofence reminders.');
+      return;
+    }
+
+    setReminderMessage('Reminders enabled. We will notify you when you enter office radius.');
+  }
+
   return (
     <div className="flex-1 w-full p-4 md:p-8 max-w-[1200px] mx-auto space-y-6">
       <header className="flex flex-col gap-3">
-        <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-normal tracking-tight text-foreground">dtr</h1>
-          <span className="text-[10px] font-mono tracking-wider px-1.5 py-0.5 rounded outline outline-1 outline-border bg-surface-200 text-light uppercase">
-            One tap
-          </span>
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-normal tracking-tight text-foreground">dtr</h1>
+            <span className="text-[10px] font-mono tracking-wider px-1.5 py-0.5 rounded outline outline-1 outline-border bg-surface-200 text-light uppercase">
+              One tap
+            </span>
+          </div>
+
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => void handleEnableReminders()}
+            className="gap-1 px-2 sm:px-3"
+            aria-label="Enable reminders"
+          >
+            <BellRing className="h-3 w-3" />
+            <span className="hidden sm:inline">Reminders</span>
+          </Button>
         </div>
 
         <p className="max-w-2xl text-xs text-light">
           Clock in or clock out with a single tap. Keep your daily record accurate without extra steps.
         </p>
+        {reminderMessage ? <p className="text-[10px] text-lighter">{reminderMessage}</p> : null}
       </header>
 
       <section className="w-full border border-control bg-surface-100 rounded-md shadow-sm p-4 md:p-6 space-y-4">

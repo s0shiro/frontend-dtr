@@ -536,10 +536,6 @@ export default function HistoryPage() {
                     const amStatus = row.amLog ? getRowStatus(row.amLog) : "";
                     const pmStatus = row.pmLog ? getRowStatus(row.pmLog) : "";
                     const notes = [row.amLog?.note, row.pmLog?.note].filter(Boolean).join(" | ");
-                    const locationTags = [
-                      row.amLog ? `AM ${row.amLog.clockInLocationTag}` : null,
-                      row.pmLog ? `PM ${row.pmLog.clockInLocationTag}` : null,
-                    ].filter(Boolean).join(" · ");
                     const dayType = getDayType(row);
                     const hasLogs = Boolean(row.amLog || row.pmLog);
                     const amCovered = isPeriodCovered(row, "am");
@@ -616,7 +612,6 @@ export default function HistoryPage() {
                         <td className="px-3 py-2 text-xs text-light">
                           <div className="flex items-center gap-2">
                             {notes || (hasLogs ? "-" : row.isHoliday ? "No entry required (holiday)" : row.isWeekend ? "No entry required (weekend)" : "No entry yet")}
-                            {locationTags ? <span className="text-brand">{locationTags}</span> : null}
                             {amStatus ? (
                               <span className={amStatus === "open" ? "text-warning" : "text"}>
                                 AM {amStatus}
