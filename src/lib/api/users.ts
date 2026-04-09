@@ -1,11 +1,19 @@
 import type { UpdateDailyRatePayload, UserProfile } from "@/types/user";
 
 export const userQueryKey = () => ["users", "me"] as const;
+export const officeConfigQueryKey = () => ["users", "me", "office-config"] as const;
 
 interface ApiResponse<T> {
   success: boolean;
   data: T | null;
   error: string | null;
+}
+
+export interface OfficeConfig {
+  latitude: number | null;
+  longitude: number | null;
+  radiusMeters: number;
+  configured: boolean;
 }
 
 async function usersRequest<T>(path: string, init: RequestInit): Promise<T> {
@@ -30,6 +38,10 @@ async function usersRequest<T>(path: string, init: RequestInit): Promise<T> {
 
 export function getMyProfile() {
   return usersRequest<UserProfile>("/me", { method: "GET" });
+}
+
+export function getMyOfficeConfig() {
+  return usersRequest<OfficeConfig>("/me/office-config", { method: "GET" });
 }
 
 export function patchMyDailyRate(dailyRate: number) {

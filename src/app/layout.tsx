@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Source_Code_Pro } from "next/font/google";
-import Script from "next/script";
+import "maplibre-gl/dist/maplibre-gl.css";
 import "./globals.css";
 import { QueryProvider } from "@/providers/QueryProvider";
 import { PwaRegistration } from "@/components/layout/PwaRegistration";
@@ -29,60 +29,6 @@ export const viewport: Viewport = {
   themeColor: "#111827",
 };
 
-const themeInitScript = `
-(() => {
-  try {
-    const storedTheme = localStorage.getItem("theme");
-    const resolvedTheme = storedTheme === "light" || storedTheme === "dark" ? storedTheme : "dark";
-    const root = document.documentElement;
-    root.classList.toggle("dark", resolvedTheme === "dark");
-    root.style.colorScheme = resolvedTheme;
-  } catch {
-    const root = document.documentElement;
-    root.classList.add("dark");
-    root.style.colorScheme = "dark";
-  }
-})();
-`;
-
-const devCacheResetScript = `
-(() => {
-  const resetFlag = "__dtr_dev_cache_reset_v2__";
-  if (sessionStorage.getItem(resetFlag) === "1") {
-    return;
-  }
-
-  sessionStorage.setItem(resetFlag, "1");
-
-  const clearStaleRuntime = async () => {
-    let hadRegistrations = false;
-    let hadCaches = false;
-
-    try {
-      if ("serviceWorker" in navigator) {
-        const registrations = await navigator.serviceWorker.getRegistrations();
-        hadRegistrations = registrations.length > 0;
-        await Promise.all(registrations.map((registration) => registration.unregister()));
-      }
-
-      if ("caches" in window) {
-        const keys = await caches.keys();
-        hadCaches = keys.length > 0;
-        await Promise.all(keys.map((key) => caches.delete(key)));
-      }
-    } catch {
-      return;
-    }
-
-    if (hadRegistrations || hadCaches) {
-      location.reload();
-    }
-  };
-
-  void clearStaleRuntime();
-})();
-`;
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -92,7 +38,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${geist.variable} ${sourceCodePro.variable}`}
+      className={`${geist.variable} ${sourceCodePro.variable} dark`}
     >
       <head>
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
@@ -101,10 +47,6 @@ export default function RootLayout({
         suppressHydrationWarning
         className="h-screen overflow-hidden bg-bg font-sans text-foreground antialiased"
       >
-        <Script id="theme-init" strategy="beforeInteractive" dangerouslySetInnerHTML={{ __html: themeInitScript }} />
-        {process.env.NODE_ENV !== "production" ? (
-          <Script id="dev-cache-reset" strategy="beforeInteractive" dangerouslySetInnerHTML={{ __html: devCacheResetScript }} />
-        ) : null}
         <ThemeProvider>
           <QueryProvider>
             <PwaRegistration />

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Crosshair, MapPin } from 'lucide-react';
+import { MapPin } from 'lucide-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,8 @@ import {
   type ClockPayload,
   type LogItem,
 } from '@/lib/api/logs';
+import { LiveProximityMap } from '@/components/dashboard/LiveProximityMap';
+import { getMyOfficeConfig, officeConfigQueryKey } from '@/lib/api/users';
 import { evaluateOfficeGeofence, getCurrentLocation, hasOfficeCoordinates } from '@/lib/geolocation';
 
 function getErrorMessage(error: unknown) {
@@ -28,11 +30,21 @@ function getOpenLog(logs: LogItem[]) {
   return logs.find((log) => log.clockOutAt === null) ?? null;
 }
 
+const CLOCK_IN_PROMPT_KEY = 'dtr:pending-clock-in-prompt';
+
+function getInitialGeoPromptState(): boolean {
+  if (typeof window === 'undefined') {
+    return false;
+  }
+
+  return sessionStorage.getItem(CLOCK_IN_PROMPT_KEY) === '1';
+}
+
 export function ClockWidget() {
   const queryClient = useQueryClient();
   const [note, setNote] = useState('');
   const [locationError, setLocationError] = useState<string | null>(null);
-  const [showGeoPrompt, setShowGeoPrompt] = useState(false);
+  const [showGeoPrompt, setShowGeoPrompt] = useState(getInitialGeoPromptState);
   const [liveProximity, setLiveProximity] = useState<{
     latitude: number;
     longitude: number;
@@ -47,10 +59,19 @@ export function ClockWidget() {
     refetchInterval: 60000,
   });
 
+  const officeConfigQuery = useQuery({
+    queryKey: officeConfigQueryKey(),
+    queryFn: () => getMyOfficeConfig(),
+    staleTime: 15_000,
+    refetchInterval: 30_000,
+  });
+
   const clockInMutation = useMutation({
     mutationFn: clockInLog,
     onSuccess: async () => {
       setNote('');
+      setShowGeoPrompt(false);
+      sessionStorage.removeItem(CLOCK_IN_PROMPT_KEY);
       await queryClient.invalidateQueries({ queryKey: logsQueryKey() });
     },
   });
@@ -118,16 +139,23 @@ export function ClockWidget() {
       })
     : null;
 
-  const CLOCK_IN_PROMPT_KEY = 'dtr:pending-clock-in-prompt';
-  const officeReady = hasOfficeCoordinates();
+  const officeCoordinates = useMemo(() => {
+    const data = officeConfigQuery.data;
 
-  useEffect(() => {
-    const shouldPrompt = sessionStorage.getItem(CLOCK_IN_PROMPT_KEY) === '1';
-
-    if (shouldPrompt) {
-      setShowGeoPrompt(true);
+    if (!data?.configured || data.latitude === null || data.longitude === null) {
+      return null;
     }
 
+    return {
+      latitude: data.latitude,
+      longitude: data.longitude,
+      radiusMeters: data.radiusMeters,
+    };
+  }, [officeConfigQuery.data]);
+
+  const officeReady = hasOfficeCoordinates(officeCoordinates);
+
+  useEffect(() => {
     const onGeofenceEntry = () => {
       setShowGeoPrompt(true);
     };
@@ -138,13 +166,6 @@ export function ClockWidget() {
       window.removeEventListener('dtr:geofence-entry', onGeofenceEntry);
     };
   }, []);
-
-  useEffect(() => {
-    if (hasActiveLog) {
-      setShowGeoPrompt(false);
-      sessionStorage.removeItem(CLOCK_IN_PROMPT_KEY);
-    }
-  }, [hasActiveLog]);
 
   useEffect(() => {
     if (typeof window === 'undefined' || !("geolocation" in navigator) || !officeReady) {
@@ -158,7 +179,7 @@ export function ClockWidget() {
         accuracy: Number.isFinite(position.coords.accuracy) ? position.coords.accuracy : undefined,
       };
 
-      const evaluation = evaluateOfficeGeofence(location);
+      const evaluation = evaluateOfficeGeofence(location, officeCoordinates);
 
       setLiveProximity({
         ...location,
@@ -216,7 +237,7 @@ export function ClockWidget() {
       document.removeEventListener('visibilitychange', onVisibilityChange);
       navigator.geolocation.clearWatch(watchId);
     };
-  }, [officeReady]);
+  }, [officeCoordinates, officeReady]);
 
   async function handleGeoPromptClockIn() {
     await handleClockAction('in');
@@ -297,41 +318,26 @@ export function ClockWidget() {
           </span>
         </div>
 
-        {liveProximity ? (
-          <>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[10px]">
-              <div className="rounded border border-control bg-surface-200 px-2 py-1.5">
-                <p className="font-mono uppercase tracking-wider text-lighter">Distance</p>
-                <p className="mt-1 text-xs text-light font-mono">
-                  {liveProximity.distanceMeters !== null ? `${liveProximity.distanceMeters} m` : '—'}
-                </p>
-              </div>
-              <div className="rounded border border-control bg-surface-200 px-2 py-1.5">
-                <p className="font-mono uppercase tracking-wider text-lighter">Status</p>
-                <p className={`mt-1 text-xs ${liveProximity.inside ? 'text-brand' : 'text-light'}`}>
-                  {liveProximity.inside ? 'Inside radius' : 'Outside radius'}
-                </p>
-              </div>
-              <div className="rounded border border-control bg-surface-200 px-2 py-1.5">
-                <p className="font-mono uppercase tracking-wider text-lighter">Accuracy</p>
-                <p className="mt-1 text-xs text-light font-mono">
-                  {liveProximity.accuracy ? `±${Math.round(liveProximity.accuracy)} m` : '—'}
-                </p>
-              </div>
-            </div>
-
-            <div className="rounded border border-control bg-surface-200 px-2 py-1.5 text-[10px] font-mono text-light inline-flex items-center gap-1 w-full">
-              <Crosshair className="h-3 w-3" />
-              {liveProximity.latitude.toFixed(5)}, {liveProximity.longitude.toFixed(5)}
-            </div>
-          </>
+        {officeCoordinates ? (
+          <LiveProximityMap
+            officeLocation={{
+              latitude: officeCoordinates.latitude,
+              longitude: officeCoordinates.longitude,
+            }}
+            userLocation={liveProximity
+              ? {
+                  latitude: liveProximity.latitude,
+                  longitude: liveProximity.longitude,
+                  accuracy: liveProximity.accuracy,
+                }
+              : null}
+          />
         ) : (
           <p className="text-[10px] text-lighter">
-            {officeReady
-              ? 'Waiting for GPS fix... allow location access to see live distance.'
-              : 'Set NEXT_PUBLIC_OFFICE_LATITUDE and NEXT_PUBLIC_OFFICE_LONGITUDE to enable proximity tracking.'}
+            Office coordinates are not configured on the server.
           </p>
         )}
+
       </div>
 
       {errorMessage ? (

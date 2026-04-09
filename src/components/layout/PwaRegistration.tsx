@@ -1,8 +1,11 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 
 import { sendGeofenceEntryReminder } from "@/lib/api/automation";
+import { useSession } from "@/lib/auth-client";
+import { getMyOfficeConfig, officeConfigQueryKey } from "@/lib/api/users";
 import { evaluateOfficeGeofence, hasOfficeCoordinates } from "@/lib/geolocation";
 
 const ENTRY_NOTIFICATION_KEY = "dtr:last-geofence-inside";
@@ -52,6 +55,31 @@ function shouldSendRemoteReminder(nowMs: number): boolean {
 }
 
 export function PwaRegistration() {
+  const session = useSession();
+  const isAuthenticated = Boolean(session.data?.user);
+
+  const officeConfigQuery = useQuery({
+    queryKey: officeConfigQueryKey(),
+    queryFn: () => getMyOfficeConfig(),
+    staleTime: 15_000,
+    refetchInterval: 30_000,
+    enabled: isAuthenticated,
+  });
+
+  const officeCoordinates = useMemo(() => {
+    const data = officeConfigQuery.data;
+
+    if (!data?.configured || data.latitude === null || data.longitude === null) {
+      return null;
+    }
+
+    return {
+      latitude: data.latitude,
+      longitude: data.longitude,
+      radiusMeters: data.radiusMeters,
+    };
+  }, [officeConfigQuery.data]);
+
   useEffect(() => {
     if (!("serviceWorker" in navigator)) {
       return;
@@ -87,7 +115,7 @@ export function PwaRegistration() {
       return;
     }
 
-    if (!hasOfficeCoordinates()) {
+    if (!hasOfficeCoordinates(officeCoordinates)) {
       return;
     }
 
@@ -95,11 +123,14 @@ export function PwaRegistration() {
 
     const watchId = navigator.geolocation.watchPosition(
       (position) => {
-        const evaluation = evaluateOfficeGeofence({
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-          accuracy: position.coords.accuracy,
-        });
+        const evaluation = evaluateOfficeGeofence(
+          {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            accuracy: position.coords.accuracy,
+          },
+          officeCoordinates,
+        );
 
         if (evaluation.inside && !previousInside) {
           sessionStorage.setItem(CLOCK_IN_PROMPT_KEY, "1");
@@ -138,7 +169,7 @@ export function PwaRegistration() {
     return () => {
       navigator.geolocation.clearWatch(watchId);
     };
-  }, []);
+  }, [officeCoordinates]);
 
   return null;
 }

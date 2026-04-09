@@ -9,31 +9,36 @@ export interface GeofenceEvaluation {
   inside: boolean;
 }
 
-const OFFICE_LATITUDE = Number(process.env.NEXT_PUBLIC_OFFICE_LATITUDE ?? "");
-const OFFICE_LONGITUDE = Number(process.env.NEXT_PUBLIC_OFFICE_LONGITUDE ?? "");
-const OFFICE_RADIUS_METERS = Number(process.env.NEXT_PUBLIC_OFFICE_RADIUS_METERS ?? "50");
+export interface OfficeCoordinates {
+  latitude: number;
+  longitude: number;
+  radiusMeters: number;
+}
 
-export function hasOfficeCoordinates(): boolean {
-  return Number.isFinite(OFFICE_LATITUDE) && Number.isFinite(OFFICE_LONGITUDE);
+export function hasOfficeCoordinates(officeCoordinates: OfficeCoordinates | null): boolean {
+  return Boolean(officeCoordinates);
 }
 
 function degreesToRadians(value: number): number {
   return (value * Math.PI) / 180;
 }
 
-export function getDistanceMeters(from: DeviceLocation): number | null {
-  if (!hasOfficeCoordinates()) {
+export function getDistanceMeters(
+  from: DeviceLocation,
+  officeCoordinates: OfficeCoordinates | null,
+): number | null {
+  if (!officeCoordinates) {
     return null;
   }
 
   const earthRadiusMeters = 6371e3;
-  const dLat = degreesToRadians(OFFICE_LATITUDE - from.latitude);
-  const dLon = degreesToRadians(OFFICE_LONGITUDE - from.longitude);
+  const dLat = degreesToRadians(officeCoordinates.latitude - from.latitude);
+  const dLon = degreesToRadians(officeCoordinates.longitude - from.longitude);
 
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
     Math.cos(degreesToRadians(from.latitude)) *
-      Math.cos(degreesToRadians(OFFICE_LATITUDE)) *
+      Math.cos(degreesToRadians(officeCoordinates.latitude)) *
       Math.sin(dLon / 2) *
       Math.sin(dLon / 2);
 
@@ -41,10 +46,13 @@ export function getDistanceMeters(from: DeviceLocation): number | null {
   return Math.round(earthRadiusMeters * c);
 }
 
-export function evaluateOfficeGeofence(location: DeviceLocation): GeofenceEvaluation {
-  const distanceMeters = getDistanceMeters(location);
+export function evaluateOfficeGeofence(
+  location: DeviceLocation,
+  officeCoordinates: OfficeCoordinates | null,
+): GeofenceEvaluation {
+  const distanceMeters = getDistanceMeters(location, officeCoordinates);
 
-  if (distanceMeters === null) {
+  if (distanceMeters === null || officeCoordinates === null) {
     return {
       distanceMeters,
       inside: false,
@@ -53,7 +61,7 @@ export function evaluateOfficeGeofence(location: DeviceLocation): GeofenceEvalua
 
   return {
     distanceMeters,
-    inside: distanceMeters <= OFFICE_RADIUS_METERS,
+    inside: distanceMeters <= officeCoordinates.radiusMeters,
   };
 }
 
