@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import { endOfWeek, format, isToday, startOfWeek } from 'date-fns';
 
 import { ClockWidget } from '@/components/dashboard/ClockWidget';
+import { DailyMotivationCard } from '@/components/dashboard/DailyMotivationCard';
 import { SalaryWidget } from '@/components/dashboard/SalaryWidget';
 import { ReleaseNotesDialog } from '@/components/layout/ReleaseNotesDialog';
 import { Button } from '@/components/ui/button';
@@ -130,6 +131,8 @@ export default function DashboardPage() {
         </p>
         {reminderMessage ? <p className="text-[10px] text-lighter">{reminderMessage}</p> : null}
       </header>
+
+      <DailyMotivationCard />
 
       <section className="w-full border border-control bg-surface-100 rounded-md shadow-sm p-4 md:p-6 space-y-4">
         <div className="flex items-center justify-between gap-3">

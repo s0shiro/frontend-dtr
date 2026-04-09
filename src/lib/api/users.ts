@@ -3,6 +3,7 @@ import type { UpdateDailyRatePayload, UserProfile } from "@/types/user";
 export const userQueryKey = () => ["users", "me"] as const;
 export const officeConfigQueryKey = () => ["users", "me", "office-config"] as const;
 export const releaseNotesQueryKey = () => ["users", "me", "release-notes", "latest"] as const;
+export const dailyMotivationQueryKey = () => ["users", "me", "motivation", "daily"] as const;
 
 interface ApiResponse<T> {
   success: boolean;
@@ -22,6 +23,12 @@ export interface ReleaseNotes {
   releasedAt: string;
   title: string;
   highlights: string[];
+}
+
+export interface DailyMotivation {
+  dateKey: string;
+  quote: string;
+  author: string;
 }
 
 async function usersRequest<T>(path: string, init: RequestInit): Promise<T> {
@@ -54,6 +61,10 @@ export function getMyOfficeConfig() {
 
 export function getMyLatestReleaseNotes() {
   return usersRequest<ReleaseNotes>("/me/release-notes/latest", { method: "GET" });
+}
+
+export function getMyDailyMotivation() {
+  return usersRequest<DailyMotivation>("/me/motivation/daily", { method: "GET" });
 }
 
 export function patchMyDailyRate(dailyRate: number) {
