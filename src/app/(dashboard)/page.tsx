@@ -7,6 +7,7 @@ import { endOfWeek, format, isToday, startOfWeek } from 'date-fns';
 
 import { ClockWidget } from '@/components/dashboard/ClockWidget';
 import { SalaryWidget } from '@/components/dashboard/SalaryWidget';
+import { ReleaseNotesDialog } from '@/components/layout/ReleaseNotesDialog';
 import { Button } from '@/components/ui/button';
 import { listLogs, logsQueryKey } from '@/lib/api/logs';
 
@@ -100,7 +101,9 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="flex-1 w-full p-4 md:p-8 max-w-[1200px] mx-auto space-y-6">
+    <>
+      <ReleaseNotesDialog />
+      <div className="flex-1 w-full p-4 md:p-8 max-w-[1200px] mx-auto space-y-6">
       <header className="flex flex-col gap-3">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3">
@@ -201,6 +204,7 @@ export default function DashboardPage() {
           Tip: use this screen as your daily start and end touchpoint.
         </div>
       </section>
-    </div>
+      </div>
+    </>
   );
 }
