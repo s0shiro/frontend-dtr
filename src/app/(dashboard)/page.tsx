@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useSyncExternalStore } from 'react';
 import { BellRing } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { endOfWeek, format, isToday, startOfWeek } from 'date-fns';
@@ -10,6 +10,7 @@ import { DailyMotivationCard } from '@/components/dashboard/DailyMotivationCard'
 import { SalaryWidget } from '@/components/dashboard/SalaryWidget';
 import { ReleaseNotesDialog } from '@/components/layout/ReleaseNotesDialog';
 import { Button } from '@/components/ui/button';
+import { useSession } from '@/lib/auth-client';
 import { listLogs, logsQueryKey } from '@/lib/api/logs';
 
 function toHoursLabel(minutes: number): string {
@@ -28,8 +29,23 @@ function toDurationLabel(minutes: number): string {
   return `${hours}h ${remainingMinutes}m`;
 }
 
+function getGreetingLabel(now: Date): string {
+  const hour = now.getHours();
+
+  if (hour < 12) {
+    return 'Good morning';
+  }
+
+  if (hour < 18) {
+    return 'Good afternoon';
+  }
+
+  return 'Good evening';
+}
+
 export default function DashboardPage() {
   const [reminderMessage, setReminderMessage] = useState<string | null>(null);
+  const session = useSession();
   const logsQuery = useQuery({
     queryKey: logsQueryKey(),
     queryFn: () => listLogs(),
@@ -85,6 +101,17 @@ export default function DashboardPage() {
     Math.round((summary.weekMinutes / Math.max(1, summary.weeklyTargetMinutes)) * 100),
   );
 
+  const isClient = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
+
+  const greetingName = isClient
+    ? session.data?.user?.name?.trim() ?? session.data?.user?.email?.split('@')[0] ?? 'there'
+    : 'there';
+  const greetingLabel = isClient ? getGreetingLabel(new Date()) : 'Hello';
+
   async function handleEnableReminders() {
     if (typeof window === 'undefined' || !("Notification" in window)) {
       setReminderMessage('Notifications are not supported on this browser.');
@@ -104,109 +131,117 @@ export default function DashboardPage() {
   return (
     <>
       <ReleaseNotesDialog />
-      <div className="flex-1 w-full p-4 md:p-8 max-w-[1200px] mx-auto space-y-6">
-      <header className="flex flex-col gap-3">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-normal tracking-tight text-foreground">dtr</h1>
-            <span className="text-[10px] font-mono tracking-wider px-1.5 py-0.5 rounded outline outline-1 outline-border bg-surface-200 text-light uppercase">
-              One tap
+      <div className="flex-1 w-full p-4 md:p-8 max-w-[1200px] mx-auto space-y-8">
+        <header className="flex flex-col gap-4">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2">
+                <h1 className="text-2xl font-normal tracking-tight text-foreground">
+                  {greetingLabel}, {greetingName}
+                </h1>
+                <span className="text-[10px] font-mono tracking-wider px-1.5 py-0.5 rounded outline outline-1 outline-border bg-surface-200 text-light uppercase">
+                  Dashboard
+                </span>
+              </div>
+
+              <p className="max-w-2xl text-xs text-light">
+                Track your day in one tap and keep your DTR clean, accurate, and up to date.
+              </p>
+            </div>
+
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => void handleEnableReminders()}
+              className="px-2 sm:px-3"
+              aria-label="Enable reminders"
+            >
+              <BellRing data-icon="inline-start" />
+              <span className="hidden sm:inline">Reminders</span>
+            </Button>
+          </div>
+
+          {reminderMessage ? <p className="text-[10px] text-lighter">{reminderMessage}</p> : null}
+        </header>
+
+        <section className="grid grid-cols-1 xl:grid-cols-[1.5fr_1fr] gap-4">
+          <div className="w-full border border-control bg-surface-100 rounded-md shadow-sm p-4 md:p-6 flex flex-col gap-4">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-sm font-medium text-foreground">weekly progress</p>
+              <span className="text-[10px] font-mono tracking-wider px-2 py-1 rounded bg-surface-200 text-light uppercase">
+                week {summary.weekRangeLabel}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="h-28 rounded-md border border-control bg-surface-100 p-3 flex flex-col justify-between">
+                <p className="text-[10px] font-mono uppercase tracking-wider text-light">today hours</p>
+                <p className="text-2xl font-normal text-foreground tabular-nums">{toHoursLabel(summary.todayMinutes)}</p>
+                <p className="text-[10px] text-lighter">{summary.todaySessions} session(s) logged today</p>
+              </div>
+
+              <div className="h-28 rounded-md border border-control bg-surface-100 p-3 flex flex-col justify-between">
+                <p className="text-[10px] font-mono uppercase tracking-wider text-light">week hours</p>
+                <p className="text-2xl font-normal text-foreground tabular-nums">{toHoursLabel(summary.weekMinutes)}</p>
+                <p className="text-[10px] text-lighter">{summary.weekSessions} session(s) this week</p>
+              </div>
+
+              <div className="h-28 rounded-md border border-control bg-surface-100 p-3 flex flex-col justify-between">
+                <p className="text-[10px] font-mono uppercase tracking-wider text-light">weekly target</p>
+                <p className="text-2xl font-normal text-foreground tabular-nums">
+                  {toHoursLabel(summary.weeklyTargetMinutes)}
+                </p>
+                <p className="text-[10px] text-lighter">standard baseline for full-time week</p>
+              </div>
+
+              <div className="h-28 rounded-md border border-control bg-surface-100 p-3 flex flex-col justify-between">
+                <p className="text-[10px] font-mono uppercase tracking-wider text-light">remaining</p>
+                <p className="text-2xl font-normal text-foreground tabular-nums">
+                  {toDurationLabel(summary.weeklyTargetMinutes - summary.weekMinutes)}
+                </p>
+                <p className="text-[10px] text-lighter">{weeklyProgress}% of weekly target completed</p>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <div className="h-1.5 w-full rounded-full bg-surface-200 overflow-hidden">
+                <div
+                  className="h-full bg-brand transition-all duration-500"
+                  style={{ width: `${weeklyProgress}%` }}
+                />
+              </div>
+
+              <div className="flex items-center justify-between text-[10px] text-lighter">
+                <span>
+                  {logsQuery.isFetching ? 'Refreshing summary...' : 'Summary updates from your latest clock activity.'}
+                </span>
+                <span>
+                  {logsQuery.isError ? 'Could not load logs.' : `${summary.weekSessions} entries in current week`}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <DailyMotivationCard />
+        </section>
+
+        <section className="w-full border border-control bg-surface-100 rounded-md shadow-sm p-4 md:p-6 flex flex-col gap-4">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm font-medium text-foreground">today</p>
+            <span className="text-[10px] font-mono tracking-wider px-2 py-1 rounded bg-surface-200 text-light uppercase">
+              digital time record
             </span>
           </div>
 
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => void handleEnableReminders()}
-            className="gap-1 px-2 sm:px-3"
-            aria-label="Enable reminders"
-          >
-            <BellRing className="h-3 w-3" />
-            <span className="hidden sm:inline">Reminders</span>
-          </Button>
-        </div>
-
-        <p className="max-w-2xl text-xs text-light">
-          Clock in or clock out with a single tap. Keep your daily record accurate without extra steps.
-        </p>
-        {reminderMessage ? <p className="text-[10px] text-lighter">{reminderMessage}</p> : null}
-      </header>
-
-      <DailyMotivationCard />
-
-      <section className="w-full border border-control bg-surface-100 rounded-md shadow-sm p-4 md:p-6 space-y-4">
-        <div className="flex items-center justify-between gap-3">
-          <p className="text-sm font-medium text-foreground">summary</p>
-          <span className="text-[10px] font-mono tracking-wider px-2 py-1 rounded bg-surface-200 text-light uppercase">
-            week {summary.weekRangeLabel}
-          </span>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          <div className="h-28 rounded-md border border-control bg-surface-100 p-3 flex flex-col justify-between">
-            <p className="text-[10px] font-mono uppercase tracking-wider text-light">today hours</p>
-            <p className="text-2xl font-normal text-foreground tabular-nums">{toHoursLabel(summary.todayMinutes)}</p>
-            <p className="text-[10px] text-lighter">{summary.todaySessions} session(s) logged today</p>
+          <div className="grid grid-cols-1 xl:grid-cols-[1.2fr_1fr] gap-4 items-start">
+            <ClockWidget />
+            <SalaryWidget logs={logsQuery.data?.logs ?? []} />
           </div>
 
-          <div className="h-28 rounded-md border border-control bg-surface-100 p-3 flex flex-col justify-between">
-            <p className="text-[10px] font-mono uppercase tracking-wider text-light">week hours</p>
-            <p className="text-2xl font-normal text-foreground tabular-nums">{toHoursLabel(summary.weekMinutes)}</p>
-            <p className="text-[10px] text-lighter">{summary.weekSessions} session(s) this week</p>
+          <div className="border-t border-control pt-3 text-[10px] text-lighter">
+            Tip: use this screen as your daily start and end touchpoint.
           </div>
-
-          <div className="h-28 rounded-md border border-control bg-surface-100 p-3 flex flex-col justify-between">
-            <p className="text-[10px] font-mono uppercase tracking-wider text-light">weekly target</p>
-            <p className="text-2xl font-normal text-foreground tabular-nums">
-              {toHoursLabel(summary.weeklyTargetMinutes)}
-            </p>
-            <p className="text-[10px] text-lighter">standard baseline for full-time week</p>
-          </div>
-
-          <div className="h-28 rounded-md border border-control bg-surface-100 p-3 flex flex-col justify-between">
-            <p className="text-[10px] font-mono uppercase tracking-wider text-light">remaining</p>
-            <p className="text-2xl font-normal text-foreground tabular-nums">
-              {toDurationLabel(summary.weeklyTargetMinutes - summary.weekMinutes)}
-            </p>
-            <p className="text-[10px] text-lighter">{weeklyProgress}% of weekly target completed</p>
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <div className="h-1.5 w-full rounded-full bg-surface-200 overflow-hidden">
-            <div
-              className="h-full bg-brand transition-all duration-500"
-              style={{ width: `${weeklyProgress}%` }}
-            />
-          </div>
-
-          <div className="flex items-center justify-between text-[10px] text-lighter">
-            <span>
-              {logsQuery.isFetching ? 'Refreshing summary...' : 'Summary updates from your latest clock activity.'}
-            </span>
-            <span>
-              {logsQuery.isError ? 'Could not load logs.' : `${summary.weekSessions} entries in current week`}
-            </span>
-          </div>
-        </div>
-      </section>
-
-      <section className="w-full border border-control bg-surface-100 rounded-md shadow-sm p-4 md:p-6 space-y-4">
-        <div className="flex items-center justify-between gap-3">
-          <p className="text-sm font-medium text-foreground">today</p>
-          <span className="text-[10px] font-mono tracking-wider px-2 py-1 rounded bg-surface-200 text-light uppercase">
-            digital time record
-          </span>
-        </div>
-
-        <ClockWidget />
-
-        <SalaryWidget logs={logsQuery.data?.logs ?? []} />
-
-        <div className="border-t border-control pt-3 text-[10px] text-lighter">
-          Tip: use this screen as your daily start and end touchpoint.
-        </div>
-      </section>
+        </section>
       </div>
     </>
   );
