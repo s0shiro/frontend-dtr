@@ -4,11 +4,6 @@ import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import { ChevronRight, Menu } from "lucide-react";
 
-const ThemeToggle = dynamic(
-  () => import("./ThemeToggle").then((module) => module.ThemeToggle),
-  { ssr: false },
-);
-
 const NavbarAuthControls = dynamic(
   () => import("./NavbarAuthControls").then((module) => module.NavbarAuthControls),
   { ssr: false },
@@ -56,10 +51,10 @@ export function Navbar({
         </nav>
       </div>
 
-      <div className="flex flex-1 items-center gap-3 overflow-x-auto no-scrollbar justify-end ml-4">
-        <ThemeToggle />
-
-        <NavbarAuthControls />
+      <div className="flex flex-1 items-center gap-3 ml-4">
+        <div className="ml-auto flex shrink-0 items-center">
+          <NavbarAuthControls />
+        </div>
       </div>
     </header>
   );

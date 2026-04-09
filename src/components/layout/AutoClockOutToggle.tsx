@@ -95,9 +95,9 @@ export function AutoClockOutToggle() {
   };
 
   return (
-    <div className="flex items-center gap-2 mr-2 border-r border-control pr-3">
+    <div className="flex flex-wrap items-center justify-between md:justify-start gap-2 w-full md:w-auto mt-2 md:mt-0 md:ml-auto">
       {enabled && (
-        <div className="flex items-center gap-2 mr-2">
+        <div className="flex items-center gap-2">
           {/* AM Time Display & Editor */}
           <div className="flex items-center gap-1.5 bg-surface-100 border border-control rounded pl-2 h-[28px]">
             <span className="text-[11px] font-mono tabular-nums text-foreground">
@@ -127,26 +127,28 @@ export function AutoClockOutToggle() {
           </div>
         </div>
       )}
-      <span className="hidden sm:inline text-xs text-light" id="auto-clock-out-label">
-        Auto Clock-Out
-      </span>
-      <button
-        type="button"
-        role="switch"
-        aria-checked={enabled}
-        aria-labelledby="auto-clock-out-label"
-        onClick={() => mutation.mutate({ autoClockOutEnabled: !enabled })}
-        disabled={isPending}
-        className={`relative inline-flex h-[20px] w-[36px] items-center rounded-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 ${
-          enabled ? "bg-surface-300 border border-control" : "bg-surface-200 border border-control"
-        }`}
-      >
-        <span
-          className={`pointer-events-none block h-3 w-3 rounded-sm bg-foreground ring-0 transition-transform ${
-            enabled ? "translate-x-[20px] bg-foreground" : "translate-x-[3px] bg-light"
+      <div className="flex items-center gap-2 ml-auto md:ml-0">
+        <span className="text-xs text-light" id="auto-clock-out-label">
+          Auto Clocking
+        </span>
+        <button
+          type="button"
+          role="switch"
+          aria-checked={enabled}
+          aria-labelledby="auto-clock-out-label"
+          onClick={() => mutation.mutate({ autoClockOutEnabled: !enabled })}
+          disabled={isPending}
+          className={`relative inline-flex h-[20px] w-[36px] items-center rounded-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 ${
+            enabled ? "bg-surface-300 border border-control" : "bg-surface-200 border border-control"
           }`}
-        />
-      </button>
+        >
+          <span
+            className={`pointer-events-none block h-3 w-3 rounded-sm bg-foreground ring-0 transition-transform ${
+              enabled ? "translate-x-[20px] bg-foreground" : "translate-x-[3px] bg-light"
+            }`}
+          />
+        </button>
+      </div>
     </div>
   );
 }

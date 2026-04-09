@@ -139,14 +139,8 @@ export default function DashboardPage() {
                 <h1 className="text-2xl font-normal tracking-tight text-foreground">
                   {greetingLabel}, {greetingName}
                 </h1>
-                <span className="text-[10px] font-mono tracking-wider px-1.5 py-0.5 rounded outline outline-1 outline-border bg-surface-200 text-light uppercase">
-                  Dashboard
-                </span>
               </div>
 
-              <p className="max-w-2xl text-xs text-light">
-                Track your day in one tap and keep your DTR clean, accurate, and up to date.
-              </p>
             </div>
 
             <Button
@@ -163,6 +157,24 @@ export default function DashboardPage() {
 
           {reminderMessage ? <p className="text-[10px] text-lighter">{reminderMessage}</p> : null}
         </header>
+
+        <section className="w-full border border-control bg-surface-100 rounded-md shadow-sm p-4 md:p-6 flex flex-col gap-4">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm font-medium text-foreground">today</p>
+            <span className="text-[10px] font-mono tracking-wider px-2 py-1 rounded bg-surface-200 text-light uppercase">
+              digital time record
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 xl:grid-cols-[1.2fr_1fr] gap-4 items-start">
+            <ClockWidget />
+            <SalaryWidget logs={logsQuery.data?.logs ?? []} />
+          </div>
+
+          <div className="border-t border-control pt-3 text-[10px] text-lighter">
+            Tip: use this screen as your daily start and end touchpoint.
+          </div>
+        </section>
 
         <section className="grid grid-cols-1 xl:grid-cols-[1.5fr_1fr] gap-4">
           <div className="w-full border border-control bg-surface-100 rounded-md shadow-sm p-4 md:p-6 flex flex-col gap-4">
@@ -223,24 +235,6 @@ export default function DashboardPage() {
           </div>
 
           <DailyMotivationCard />
-        </section>
-
-        <section className="w-full border border-control bg-surface-100 rounded-md shadow-sm p-4 md:p-6 flex flex-col gap-4">
-          <div className="flex items-center justify-between gap-3">
-            <p className="text-sm font-medium text-foreground">today</p>
-            <span className="text-[10px] font-mono tracking-wider px-2 py-1 rounded bg-surface-200 text-light uppercase">
-              digital time record
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 xl:grid-cols-[1.2fr_1fr] gap-4 items-start">
-            <ClockWidget />
-            <SalaryWidget logs={logsQuery.data?.logs ?? []} />
-          </div>
-
-          <div className="border-t border-control pt-3 text-[10px] text-lighter">
-            Tip: use this screen as your daily start and end touchpoint.
-          </div>
         </section>
       </div>
     </>

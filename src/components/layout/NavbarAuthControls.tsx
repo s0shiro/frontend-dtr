@@ -5,7 +5,15 @@ import { useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
 
 import { signOut, useSession } from "@/lib/auth-client";
-import { AutoClockOutToggle } from "./AutoClockOutToggle";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ThemeToggle } from "./ThemeToggle";
 
 export function NavbarAuthControls() {
   const router = useRouter();
@@ -31,25 +39,36 @@ export function NavbarAuthControls() {
   }
 
   return (
-    <>
-      <div className="flex shrink-0 items-center">
-        <AutoClockOutToggle />
-      </div>
-      <div className="hidden sm:flex shrink-0 items-center gap-2">
-        <div className="w-5 h-5 rounded-full bg-surface-300 border border-control flex items-center justify-center text-[10px] text-foreground font-medium">
-          {userInitial}
-        </div>
-        <span className="text-xs text-light max-w-[160px] truncate">{userName}</span>
-      </div>
-      <button
-        onClick={() => void handleLogout()}
-        className="h-[28px] shrink-0 px-2 flex items-center gap-2 text-xs text-light hover:text-foreground hover:bg-surface-200 rounded-md border border-transparent hover:border-control transition-colors"
-        title="Logout"
-        type="button"
-      >
-        <LogOut className="w-4 h-4" />
-        <span className="hidden md:inline">Logout</span>
-      </button>
-    </>
+    <div className="flex shrink-0 items-center gap-2">
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button className="flex shrink-0 items-center gap-2 hover:bg-surface-200 px-2 py-1 rounded-md transition-colors border border-transparent hover:border-control">
+            <div className="w-6 h-6 rounded-full bg-surface-300 border border-control flex items-center justify-center text-[10px] text-foreground font-medium">
+              {userInitial}
+            </div>
+            <span className="hidden sm:inline text-xs text-light max-w-[160px] truncate">{userName}</span>
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-48">
+          <DropdownMenuLabel className="font-normal">
+            <div className="flex flex-col space-y-1">
+              <p className="text-xs font-medium leading-none text-foreground">{userName}</p>
+              <p className="text-[10px] leading-none text-light">
+                {session.data.user.email}
+              </p>
+            </div>
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <div className="px-1.5 py-1.5">
+            <ThemeToggle />
+          </div>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={() => void handleLogout()} className="text-destructive focus:text-destructive cursor-pointer">
+            <LogOut className="mr-2 h-4 w-4" />
+            <span>Logout</span>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
   );
 }

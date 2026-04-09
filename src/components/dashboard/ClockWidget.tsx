@@ -17,6 +17,7 @@ import {
 import { LiveProximityMap } from '@/components/dashboard/LiveProximityMap';
 import { getMyOfficeConfig, officeConfigQueryKey } from '@/lib/api/users';
 import { evaluateOfficeGeofence, getCurrentLocation, hasOfficeCoordinates } from '@/lib/geolocation';
+import { AutoClockOutToggle } from '@/components/layout/AutoClockOutToggle';
 
 function getErrorMessage(error: unknown) {
   if (error instanceof Error) {
@@ -276,7 +277,10 @@ export function ClockWidget() {
           Clock Out
         </Button>
 
-        <span className="ml-auto text-xs text-light inline-flex items-center gap-1">
+        <span className="ml-auto text-xs text-light inline-flex items-center gap-2">
+          <div className="hidden md:block">
+            <AutoClockOutToggle />
+          </div>
           {isPending ? (
             'Syncing...'
           ) : hasActiveLog ? (
@@ -291,6 +295,10 @@ export function ClockWidget() {
             'Not clocked in'
           )}
         </span>
+      </div>
+
+      <div className="md:hidden pt-2 border-t border-control w-full">
+        <AutoClockOutToggle />
       </div>
 
       {showGeoPrompt && !hasActiveLog ? (
