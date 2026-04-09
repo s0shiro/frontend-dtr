@@ -2,10 +2,13 @@
 
 import { useEffect } from "react";
 
+import { sendGeofenceEntryReminder } from "@/lib/api/automation";
 import { evaluateOfficeGeofence, hasOfficeCoordinates } from "@/lib/geolocation";
 
 const ENTRY_NOTIFICATION_KEY = "dtr:last-geofence-inside";
 const CLOCK_IN_PROMPT_KEY = "dtr:pending-clock-in-prompt";
+const LAST_REMOTE_REMINDER_KEY = "dtr:last-remote-geofence-reminder";
+const REMOTE_REMINDER_COOLDOWN_MS = 15 * 60 * 1000;
 
 async function showEntryNotification() {
   if (!("Notification" in window) || Notification.permission !== "granted") {
@@ -35,6 +38,17 @@ async function showEntryNotification() {
   new Notification("You're on-site", {
     body: "You just entered the office perimeter. Don't forget to clock in.",
   });
+}
+
+function shouldSendRemoteReminder(nowMs: number): boolean {
+  const previous = Number(sessionStorage.getItem(LAST_REMOTE_REMINDER_KEY) ?? "0");
+
+  if (Number.isNaN(previous) || nowMs - previous >= REMOTE_REMINDER_COOLDOWN_MS) {
+    sessionStorage.setItem(LAST_REMOTE_REMINDER_KEY, String(nowMs));
+    return true;
+  }
+
+  return false;
 }
 
 export function PwaRegistration() {
@@ -91,6 +105,21 @@ export function PwaRegistration() {
           sessionStorage.setItem(CLOCK_IN_PROMPT_KEY, "1");
           window.dispatchEvent(new CustomEvent("dtr:geofence-entry"));
           void showEntryNotification();
+
+          const nowMs = Date.now();
+          if (shouldSendRemoteReminder(nowMs)) {
+            void sendGeofenceEntryReminder({
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude,
+              accuracy: Number.isFinite(position.coords.accuracy)
+                ? position.coords.accuracy
+                : undefined,
+              distanceMeters: evaluation.distanceMeters,
+              enteredAt: new Date(nowMs).toISOString(),
+            }).catch(() => {
+              // Keep geofence UX resilient even when webhook integration is unavailable.
+            });
+          }
         }
 
         previousInside = evaluation.inside;
