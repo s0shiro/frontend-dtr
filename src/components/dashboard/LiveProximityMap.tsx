@@ -64,6 +64,7 @@ export function LiveProximityMap({ officeLocation, userLocation }: LiveProximity
       center: [officeLocation.longitude, officeLocation.latitude],
       zoom: 16,
       attributionControl: false,
+      cooperativeGestures: true,
     });
 
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
