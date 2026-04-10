@@ -74,16 +74,6 @@ function getLogPeriod(log: LogItem) {
   return hour < 12 ? "am" : "pm";
 }
 
-function pickPeriodLog(current: LogItem | null, next: LogItem) {
-  if (!current) {
-    return next;
-  }
-
-  return new Date(next.clockInAt).getTime() < new Date(current.clockInAt).getTime()
-    ? next
-    : current;
-}
-
 interface DayRow {
   dateKey: string;
   amLog: LogItem | null;
@@ -232,7 +222,7 @@ export default function HistoryPage() {
   }, [holidayNameByDate]);
 
   const groupedRows = useMemo(() => {
-    const grouped = new Map<string, DayRow>();
+    const grouped = new Map<string, DayRow[]>();
 
     const visibleDateKeys = buildVisibleDateKeys(monthFilter);
 
@@ -240,7 +230,7 @@ export default function HistoryPage() {
       const date = new Date(`${dateKey}T00:00:00`);
       const isWeekend = date.getDay() === 0 || date.getDay() === 6;
 
-      grouped.set(dateKey, {
+      grouped.set(dateKey, [{
         dateKey,
         amLog: null,
         pmLog: null,
@@ -248,29 +238,53 @@ export default function HistoryPage() {
         isHoliday: holidayDates.has(dateKey),
         holidayName: holidayNameByDate.get(dateKey) ?? null,
         isWeekend,
-      });
+      }]);
     });
 
     monthRows.forEach((log) => {
       const dateKey = getLocalDateKey(log.clockInAt);
-      const existing = grouped.get(dateKey);
+      const rows = grouped.get(dateKey);
 
-      if (!existing) {
+      if (!rows) {
         return;
       }
 
-      existing.dayLogs.push(log);
+      rows[0].dayLogs.push(log);
 
-      if (getLogPeriod(log) === "am") {
-        existing.amLog = pickPeriodLog(existing.amLog, log);
-      } else {
-        existing.pmLog = pickPeriodLog(existing.pmLog, log);
+      const period = getLogPeriod(log);
+      let placed = false;
+      for (const row of rows) {
+        if (period === "am" && !row.amLog) {
+          row.amLog = log;
+          placed = true;
+          break;
+        } else if (period === "pm" && !row.pmLog) {
+          row.pmLog = log;
+          placed = true;
+          break;
+        }
+      }
+
+      if (!placed) {
+        const newRow: DayRow = {
+          dateKey,
+          amLog: period === "am" ? log : null,
+          pmLog: period === "pm" ? log : null,
+          dayLogs: rows[0].dayLogs,
+          isHoliday: rows[0].isHoliday,
+          holidayName: rows[0].holidayName,
+          isWeekend: rows[0].isWeekend,
+        };
+        rows.push(newRow);
       }
     });
 
     const query = search.trim().toLowerCase();
-    const dayRows = Array.from(grouped.values()).sort((a, b) => {
-      return new Date(b.dateKey).getTime() - new Date(a.dateKey).getTime();
+    const dayRows = Array.from(grouped.values()).flat().sort((a, b) => {
+      const timeDiff = new Date(b.dateKey).getTime() - new Date(a.dateKey).getTime();
+      if (timeDiff !== 0) return timeDiff;
+      // If same date, push rows with amLogs first? It doesn't matter much.
+      return 0;
     });
 
     if (!query) {
@@ -532,7 +546,7 @@ export default function HistoryPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {groupedRows.map((row) => {
+                  {groupedRows.map((row, index) => {
                     const amStatus = row.amLog ? getRowStatus(row.amLog) : "";
                     const pmStatus = row.pmLog ? getRowStatus(row.pmLog) : "";
                     const notes = [row.amLog?.note, row.pmLog?.note].filter(Boolean).join(" | ");
@@ -542,7 +556,7 @@ export default function HistoryPage() {
                     const pmCovered = isPeriodCovered(row, "pm");
 
                     return (
-                      <tr key={row.dateKey} className="border-b border-control hover:bg-surface-200">
+                      <tr key={`${row.dateKey}-${index}`} className="border-b border-control hover:bg-surface-200">
                         <td className="px-3 py-2 text-xs font-mono text-light">{formatDate(row.dateKey)}</td>
                         <td className="px-3 py-2 text-xs text-light">
                           <span className={row.isHoliday ? "text-brand" : row.isWeekend ? "text-warning" : "text-light"}>
