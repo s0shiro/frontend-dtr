@@ -17,7 +17,7 @@ export function DailyMotivationCard() {
   });
 
   return (
-    <section className="w-full border border-control bg-surface-100 rounded-md shadow-sm p-3 md:p-4">
+    <section className="w-full border border-control bg-surface-100 rounded-md shadow-sm p-4">
       <div className="flex items-start gap-2">
         <div className="mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-md border border-control bg-surface-200">
           <Quote className="h-3 w-3 text-brand" />

@@ -52,7 +52,7 @@ export function NoteEditorSheet({
         
         <div className="bg-surface-100 px-5 py-4 flex-1 overflow-y-auto space-y-5">
           <div className="space-y-1.5 flex flex-col">
-            <Label htmlFor="note-date" className="text-[13px] font-medium text-light">
+            <Label htmlFor="note-date" className="text-xs font-medium text-light">
               Date
             </Label>
             <Input
@@ -65,7 +65,7 @@ export function NoteEditorSheet({
           </div>
           
           <div className="space-y-1.5 flex flex-col h-full min-h-[200px]">
-            <Label htmlFor="note-content" className="text-[13px] font-medium text-light">
+            <Label htmlFor="note-content" className="text-xs font-medium text-light">
               Content
             </Label>
             <textarea
@@ -73,7 +73,7 @@ export function NoteEditorSheet({
               value={content}
               onChange={(e) => setContent(e.target.value)}
               placeholder="What did you work on today?"
-              className="flex-1 w-full p-2.5 text-xs text-light bg-surface-100 rounded-md border border-control transition-colors focus-visible:outline-none focus-visible:border-brand focus-visible:ring-1 focus-visible:ring-brand placeholder:text-light resize-none font-mono"
+              className="flex-1 w-full p-2.5 text-xs text-light bg-surface-100 rounded-md border border-control transition-colors focus-visible:outline-none focus-visible:border-brand focus-visible:ring-1 focus-visible:ring-brand placeholder:text-muted-foreground resize-none font-mono"
             />
           </div>
         </div>
@@ -82,13 +82,13 @@ export function NoteEditorSheet({
           <Button 
             variant="outline" 
             onClick={() => onOpenChange(false)}
-            className="flex-1 sm:flex-none h-[28px] text-xs px-3 rounded-md font-medium border-control hover:bg-surface-200 focus-visible:border-brand focus-visible:ring-1 focus-visible:ring-brand"
+            className="flex-1 sm:flex-none"
           >
             Cancel
           </Button>
           <Button 
             onClick={handleSave} 
-            className="flex-1 sm:flex-none h-[28px] text-xs px-3 rounded-md font-medium bg-brand text-brand-foreground hover:bg-brand/90 focus-visible:border-brand focus-visible:ring-1 focus-visible:ring-brand"
+            className="flex-1 sm:flex-none"
           >
             Save Note
           </Button>

@@ -129,24 +129,24 @@ export function SalaryWidget({ logs }: SalaryWidgetProps) {
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <div className="rounded-md border border-control bg-surface-100 p-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div className="rounded-md border border-control bg-surface-100 p-4 h-28 flex flex-col justify-between">
             <p className="text-[10px] font-mono uppercase tracking-wider text-light">rendered hours</p>
-            <p className="mt-1 text-2xl font-normal text-foreground tabular-nums">
+            <p className="text-2xl text-foreground tabular-nums">
               {stats.totalHoursRendered.toFixed(2)}
             </p>
           </div>
 
-          <div className="rounded-md border border-control bg-surface-100 p-3">
+          <div className="rounded-md border border-control bg-surface-100 p-4 h-28 flex flex-col justify-between">
             <p className="text-[10px] font-mono uppercase tracking-wider text-light">equivalent days</p>
-            <p className="mt-1 text-2xl font-normal text-foreground tabular-nums">
+            <p className="text-2xl text-foreground tabular-nums">
               {equivalentDaysWorked.toFixed(2)}
             </p>
           </div>
 
-          <div className="rounded-md border border-control bg-surface-100 p-3">
+          <div className="rounded-md border border-control bg-surface-100 p-4 h-28 flex flex-col justify-between">
             <p className="text-[10px] font-mono uppercase tracking-wider text-light">calculated salary</p>
-            <p className="mt-1 text-2xl font-normal text-foreground tabular-nums">
+            <p className="text-2xl text-foreground tabular-nums">
               {formatAmount(totalCalculatedSalary)}
             </p>
           </div>

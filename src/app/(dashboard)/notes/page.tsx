@@ -99,39 +99,43 @@ export default function NotesPage() {
   }
 
   return (
-    <div className="flex-1 w-full p-4 md:p-8 max-w-[1200px] mx-auto space-y-6 font-sans">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-2 sm:gap-3">
-          <h1 className="text-2xl font-normal tracking-tight text whitespace-nowrap shrink-0">Daily Notes</h1>
-          <span className="text-[10px] font-mono tracking-wider px-1.5 py-0.5 rounded outline outline-1 outline-control bg-surface-200 text-light uppercase whitespace-nowrap shrink-0">Daily Log</span>
-        </div>
-        <div className="flex items-center gap-2 w-full sm:w-auto">
-          <input
-            type="month"
-            value={currentMonth}
-            onChange={handleMonthChange}
-            suppressHydrationWarning
-            className="h-[28px] w-[140px] text-xs rounded-md bg-surface-100 border border-control text px-2.5 focus-visible:outline-none focus-visible:border-brand font-sans"
-            aria-label="Select Month"
-          />
-          <Button
-            onClick={handleOpenNew}
-            className="h-[28px] px-3 text-xs font-medium bg-brand text-brand-foreground hover:bg-brand/90 transition-colors"
-            disabled={createMutation.isPending || updateMutation.isPending}
-          >
-            <Plus className="mr-1.5 h-3.5 w-3.5" />
-            Add Note
-          </Button>
+    <div className="flex-1 w-full p-4 md:p-8 max-w-[1200px] mx-auto space-y-8">
+      <div className="flex flex-col gap-6">
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <h1 className="text-2xl font-normal tracking-tight text-foreground whitespace-nowrap shrink-0">Daily Notes</h1>
+              <span className="text-[10px] font-mono tracking-wider px-1.5 py-0.5 rounded outline outline-1 outline-border bg-surface-200 text-light uppercase whitespace-nowrap shrink-0">Daily Log</span>
+            </div>
+            <p className="text-xs text-light">Capture your daily progress, blockers, and plans.</p>
+          </div>
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <input
+              type="month"
+              value={currentMonth}
+              onChange={handleMonthChange}
+              suppressHydrationWarning
+              className="h-[28px] w-[140px] text-xs rounded-md bg-surface-100 border border-control text-foreground px-2.5 focus-visible:outline-none focus-visible:border-brand font-sans"
+              aria-label="Select Month"
+            />
+            <Button
+              onClick={handleOpenNew}
+              disabled={createMutation.isPending || updateMutation.isPending}
+            >
+              <Plus className="mr-1 h-3.5 w-3.5" />
+              Add Note
+            </Button>
+          </div>
         </div>
       </div>
 
       <div className="flex-1 min-h-0">
         {isLoading ? (
-          <div className="flex items-center justify-center h-32 border border-dashed border-control rounded-md bg-surface-100/50 text-xs text-light font-sans">
+          <div className="flex items-center justify-center h-32 border border-dashed border-control rounded-md bg-surface-100/50 text-xs text-light">
             Loading notes...
           </div>
         ) : error ? (
-          <div className="flex items-center justify-center h-32 border border-dashed border-destructive/30 bg-destructive/5 rounded-md text-xs text-destructive font-sans">
+          <div className="flex items-center justify-center h-32 border border-dashed border-destructive/30 bg-destructive/5 rounded-md text-xs text-destructive">
             Failed to load notes.
           </div>
         ) : (

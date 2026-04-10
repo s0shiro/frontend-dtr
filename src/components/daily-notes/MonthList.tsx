@@ -13,14 +13,14 @@ interface MonthListProps {
 export function MonthList({ notes, onEdit, onDelete }: MonthListProps) {
   if (notes.length === 0) {
     return (
-      <div className="p-4 text-center text-xs text-light font-sans border border-dashed border-control rounded-md bg-surface-100/30">
+      <div className="p-4 text-center text-xs text-light border border-dashed border-control rounded-md bg-surface-100/30">
         No notes found for this month.
       </div>
     )
   }
 
   return (
-    <div className="rounded-md border border-control bg-surface-100 shadow-sm overflow-hidden font-sans">
+    <div className="rounded-md border border-control bg-surface-100 shadow-sm overflow-hidden">
       <ScrollArea className="h-full max-h-[600px]">
         <div className="divide-y divide-control">
           {notes.map((note) => {
@@ -41,7 +41,7 @@ export function MonthList({ notes, onEdit, onDelete }: MonthListProps) {
 
                 {/* Content Preview */}
                 <div className="flex-1 min-w-0 flex items-center">
-                  <p className="text-xs text line-clamp-3 leading-relaxed whitespace-pre-wrap break-words overflow-hidden font-sans">
+                  <p className="text-xs text-foreground line-clamp-3 leading-relaxed whitespace-pre-wrap break-words overflow-hidden">
                     {note.content}
                   </p>
                 </div>

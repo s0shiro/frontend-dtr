@@ -139,12 +139,12 @@ export function AutoClockOutToggle() {
           onClick={() => mutation.mutate({ autoClockOutEnabled: !enabled })}
           disabled={isPending}
           className={`relative inline-flex h-[20px] w-[36px] items-center rounded-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 ${
-            enabled ? "bg-surface-300 border border-control" : "bg-surface-200 border border-control"
+            enabled ? "bg-brand border border-brand" : "bg-surface-200 border border-control"
           }`}
         >
           <span
-            className={`pointer-events-none block h-3 w-3 rounded-sm bg-foreground ring-0 transition-transform ${
-              enabled ? "translate-x-[20px] bg-foreground" : "translate-x-[3px] bg-light"
+            className={`pointer-events-none block h-3 w-3 rounded-sm ring-0 transition-transform ${
+              enabled ? "translate-x-[20px] bg-brand-foreground" : "translate-x-[3px] bg-light"
             }`}
           />
         </button>

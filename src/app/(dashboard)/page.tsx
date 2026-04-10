@@ -132,15 +132,17 @@ export default function DashboardPage() {
     <>
       <ReleaseNotesDialog />
       <div className="flex-1 w-full p-4 md:p-8 max-w-[1200px] mx-auto space-y-8">
-        <header className="flex flex-col gap-4">
+        <header className="flex flex-col gap-6">
           <div className="flex items-start justify-between gap-3">
             <div className="flex flex-col gap-2">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
                 <h1 className="text-2xl font-normal tracking-tight text-foreground">
                   {greetingLabel}, {greetingName}
                 </h1>
+                <span className="text-[10px] font-mono tracking-wider px-1.5 py-0.5 rounded outline outline-1 outline-border bg-surface-200 text-light uppercase">
+                  Dashboard
+                </span>
               </div>
-
             </div>
 
             <Button
@@ -166,7 +168,7 @@ export default function DashboardPage() {
             </span>
           </div>
 
-          <div className="grid grid-cols-1 xl:grid-cols-[1.2fr_1fr] gap-4 items-start">
+          <div className="grid grid-cols-1 xl:grid-cols-[1.2fr_1fr] gap-6 items-start">
             <ClockWidget />
             <SalaryWidget logs={logsQuery.data?.logs ?? []} />
           </div>
@@ -185,33 +187,33 @@ export default function DashboardPage() {
               </span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="h-28 rounded-md border border-control bg-surface-100 p-3 flex flex-col justify-between">
-                <p className="text-[10px] font-mono uppercase tracking-wider text-light">today hours</p>
-                <p className="text-2xl font-normal text-foreground tabular-nums">{toHoursLabel(summary.todayMinutes)}</p>
-                <p className="text-[10px] text-lighter">{summary.todaySessions} session(s) logged today</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="bg-surface-100 border border-control p-4 rounded-md shadow-sm h-32 flex flex-col justify-between">
+                <div className="text-[10px] font-mono uppercase tracking-wider text-light">today hours</div>
+                <div className="text-2xl text-foreground tabular-nums">{toHoursLabel(summary.todayMinutes)}</div>
+                <div className="text-xs text-light">{summary.todaySessions} session(s) logged today</div>
               </div>
 
-              <div className="h-28 rounded-md border border-control bg-surface-100 p-3 flex flex-col justify-between">
-                <p className="text-[10px] font-mono uppercase tracking-wider text-light">week hours</p>
-                <p className="text-2xl font-normal text-foreground tabular-nums">{toHoursLabel(summary.weekMinutes)}</p>
-                <p className="text-[10px] text-lighter">{summary.weekSessions} session(s) this week</p>
+              <div className="bg-surface-100 border border-control p-4 rounded-md shadow-sm h-32 flex flex-col justify-between">
+                <div className="text-[10px] font-mono uppercase tracking-wider text-light">week hours</div>
+                <div className="text-2xl text-foreground tabular-nums">{toHoursLabel(summary.weekMinutes)}</div>
+                <div className="text-xs text-light">{summary.weekSessions} session(s) this week</div>
               </div>
 
-              <div className="h-28 rounded-md border border-control bg-surface-100 p-3 flex flex-col justify-between">
-                <p className="text-[10px] font-mono uppercase tracking-wider text-light">weekly target</p>
-                <p className="text-2xl font-normal text-foreground tabular-nums">
+              <div className="bg-surface-100 border border-control p-4 rounded-md shadow-sm h-32 flex flex-col justify-between">
+                <div className="text-[10px] font-mono uppercase tracking-wider text-light">weekly target</div>
+                <div className="text-2xl text-foreground tabular-nums">
                   {toHoursLabel(summary.weeklyTargetMinutes)}
-                </p>
-                <p className="text-[10px] text-lighter">standard baseline for full-time week</p>
+                </div>
+                <div className="text-xs text-light">standard baseline for full-time week</div>
               </div>
 
-              <div className="h-28 rounded-md border border-control bg-surface-100 p-3 flex flex-col justify-between">
-                <p className="text-[10px] font-mono uppercase tracking-wider text-light">remaining</p>
-                <p className="text-2xl font-normal text-foreground tabular-nums">
+              <div className="bg-surface-100 border border-control p-4 rounded-md shadow-sm h-32 flex flex-col justify-between">
+                <div className="text-[10px] font-mono uppercase tracking-wider text-light">remaining</div>
+                <div className="text-2xl text-foreground tabular-nums">
                   {toDurationLabel(summary.weeklyTargetMinutes - summary.weekMinutes)}
-                </p>
-                <p className="text-[10px] text-lighter">{weeklyProgress}% of weekly target completed</p>
+                </div>
+                <div className="text-xs text-light">{weeklyProgress}% of weekly target completed</div>
               </div>
             </div>
 

@@ -422,8 +422,8 @@ export default function HistoryPage() {
     : "Failed to load history logs.";
 
   return (
-    <div className="flex-1 w-full p-4 md:p-8 max-w-[1200px] mx-auto space-y-6 print:max-w-none print:p-0">
-      <div className="flex flex-col gap-3">
+    <div className="flex-1 w-full p-4 md:p-8 max-w-[1200px] mx-auto space-y-8 print:max-w-none print:p-0">
+      <div className="flex flex-col gap-6">
         <div className="flex items-start justify-between gap-3">
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-3">
@@ -458,26 +458,26 @@ export default function HistoryPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
-        <div className="bg-surface-100 border border-control rounded-md p-3 shadow-sm">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="bg-surface-100 border border-control p-4 rounded-md shadow-sm h-32 flex flex-col justify-between">
           <div className="text-[10px] font-mono uppercase tracking-wider text-light">Total Hours</div>
-          <div className="mt-1 text-xl text-foreground">{stats.totalHoursRendered.toFixed(2)}</div>
-          <div className="text-[10px] text-lighter">From closed logs in selected month</div>
+          <div className="text-2xl text-foreground tabular-nums">{stats.totalHoursRendered.toFixed(2)}</div>
+          <div className="text-xs text-light">From closed logs in selected month</div>
         </div>
-        <div className="bg-surface-100 border border-control rounded-md p-3 shadow-sm">
+        <div className="bg-surface-100 border border-control p-4 rounded-md shadow-sm h-32 flex flex-col justify-between">
           <div className="text-[10px] font-mono uppercase tracking-wider text-light">Late Minutes</div>
-          <div className="mt-1 text-xl text-foreground">{stats.lateMinutes}</div>
-          <div className="text-[10px] text-lighter">Based on 8:00 AM expected start</div>
+          <div className="text-2xl text-foreground tabular-nums">{stats.lateMinutes}</div>
+          <div className="text-xs text-light">Based on 8:00 AM expected start</div>
         </div>
-        <div className="bg-surface-100 border border-control rounded-md p-3 shadow-sm">
+        <div className="bg-surface-100 border border-control p-4 rounded-md shadow-sm h-32 flex flex-col justify-between">
           <div className="text-[10px] font-mono uppercase tracking-wider text-light">Undertime</div>
-          <div className="mt-1 text-xl text-foreground">{stats.undertimeMinutes} min</div>
-          <div className="text-[10px] text-lighter">Simple 8-hour daily requirement</div>
+          <div className="text-2xl text-foreground tabular-nums">{stats.undertimeMinutes} min</div>
+          <div className="text-xs text-light">Simple 8-hour daily requirement</div>
         </div>
-        <div className="bg-surface-100 border border-control rounded-md p-3 shadow-sm">
+        <div className="bg-surface-100 border border-control p-4 rounded-md shadow-sm h-32 flex flex-col justify-between">
           <div className="text-[10px] font-mono uppercase tracking-wider text-light">Required Hours</div>
-          <div className="mt-1 text-xl text-foreground">{logsQuery.data?.monthSummary.requiredHours.toFixed(2) ?? '0.00'}</div>
-          <div className="text-[10px] text-lighter">
+          <div className="text-2xl text-foreground tabular-nums">{logsQuery.data?.monthSummary.requiredHours.toFixed(2) ?? '0.00'}</div>
+          <div className="text-xs text-light">
             {logsQuery.data?.monthSummary.workingDays ?? 0} working days ({logsQuery.data?.holidays.length ?? 0} holidays)
           </div>
         </div>
@@ -497,9 +497,9 @@ export default function HistoryPage() {
       ) : null}
 
       <div className="w-full border border-control bg-surface-100 rounded-md shadow-sm overflow-hidden print:border-0 print:shadow-none">
-        <div className="print:hidden border-b border-control bg-surface-100 p-4 flex flex-col md:flex-row gap-3 md:items-center md:justify-between">
-          <div className="flex flex-1 flex-col md:flex-row gap-3">
-            <Input
+      <div className="print:hidden border-b border-control bg-surface-100 p-4 flex flex-col md:flex-row gap-3 md:items-center md:justify-between">
+        <div className="flex flex-1 flex-col md:flex-row gap-3">
+          <Input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Search note, status, id, or time"
